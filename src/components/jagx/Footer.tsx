@@ -1,6 +1,9 @@
 import { Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useCMS } from "@/lib/cms-store";
 
 export function Footer() {
+  const { data } = useCMS();
   return (
     <footer className="relative border-t border-border mt-20">
       <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-4 gap-10">
@@ -17,7 +20,7 @@ export function Footer() {
           </div>
           <p className="mt-4 text-sm text-muted-foreground max-w-sm">
             JagX builds world-class digital products, JRI-certified mobile phones, fine jewelry,
-            premium clothing and business automation.
+            premium clothing, automation, cars and luxury estate.
           </p>
         </div>
 
@@ -28,15 +31,16 @@ export function Footer() {
             <li><a href="#services" className="hover:text-gold">Services</a></li>
             <li><a href="#pricing" className="hover:text-gold">Pricing</a></li>
             <li><a href="#contact" className="hover:text-gold">Contact</a></li>
+            <li><Link to="/admin" className="hover:text-gold">Admin</Link></li>
           </ul>
         </div>
 
         <div>
           <div className="text-sm font-bold text-gold mb-3">Reach Out</div>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><a href="https://wa.me/2349160654415" target="_blank" rel="noreferrer" className="hover:text-gold">WhatsApp</a></li>
-            <li><a href="mailto:gbadamositajudeenwan@gmail.com" className="hover:text-gold break-all">Email</a></li>
-            <li><a href="tel:+2349160654415" className="hover:text-gold">+234 916 065 4415</a></li>
+            <li><a href={`https://wa.me/${data.whatsapp}`} target="_blank" rel="noreferrer" className="hover:text-gold">WhatsApp</a></li>
+            <li><a href={`mailto:${data.email}`} className="hover:text-gold break-all">Email</a></li>
+            <li><a href={`tel:+${data.whatsapp}`} className="hover:text-gold">+{data.whatsapp}</a></li>
           </ul>
         </div>
       </div>

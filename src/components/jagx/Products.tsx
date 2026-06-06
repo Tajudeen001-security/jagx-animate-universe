@@ -1,13 +1,8 @@
 import { motion } from "framer-motion";
-
-const products = [
-  { name: "JagX Pulse X1", category: "Mobile · JRI Certified", price: "₦450,000", tag: "FLAGSHIP" },
-  { name: "JagX Aurum Chain", category: "Jewelry · 18K Gold", price: "₦320,000", tag: "LIMITED" },
-  { name: "JagX Apex Hoodie", category: "Clothing · Premium Drop", price: "₦45,000", tag: "NEW" },
-  { name: "JagX FlowOps", category: "Automation Suite", price: "From ₦150,000", tag: "B2B" },
-];
+import { useCMS } from "@/lib/cms-store";
 
 export function Products() {
+  const { data } = useCMS();
   return (
     <section id="products" className="relative py-32 px-6">
       <div className="max-w-7xl mx-auto">
@@ -27,9 +22,9 @@ export function Products() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((p, i) => (
+          {data.products.map((p, i) => (
             <motion.div
-              key={p.name}
+              key={p.id}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -39,20 +34,10 @@ export function Products() {
             >
               <div className="aspect-[4/5] relative overflow-hidden bg-gradient-to-br from-secondary to-background">
                 <div className="absolute inset-0 [background-image:radial-gradient(circle_at_50%_50%,oklch(0.82_0.16_85/30%),transparent_60%)]" />
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-10 rounded-full border border-gold/20"
-                />
-                <motion.div
-                  animate={{ rotate: [360, 0] }}
-                  transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-16 rounded-full border border-accent/20"
-                />
+                <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute inset-10 rounded-full border border-gold/20" />
+                <motion.div animate={{ rotate: [360, 0] }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} className="absolute inset-16 rounded-full border border-accent/20" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-24 rounded-full bg-gradient-gold shadow-glow flex items-center justify-center text-2xl font-black text-primary-foreground group-hover:scale-110 transition-transform">
-                    J
-                  </div>
+                  <div className="w-24 h-24 rounded-full bg-gradient-gold shadow-glow flex items-center justify-center text-2xl font-black text-primary-foreground group-hover:scale-110 transition-transform">J</div>
                 </div>
                 <div className="absolute top-4 left-4 text-[10px] px-2 py-1 bg-gold/90 text-primary-foreground rounded-full font-bold tracking-wider">{p.tag}</div>
               </div>
