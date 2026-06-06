@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
+import { useCMS } from "@/lib/cms-store";
 
 const links = [
   { href: "#services", label: "Services" },
@@ -13,6 +14,8 @@ const links = [
 ];
 
 export function Navbar() {
+  const { data } = useCMS();
+  const wa = `https://wa.me/${data.whatsapp}`;
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
