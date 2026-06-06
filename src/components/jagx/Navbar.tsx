@@ -67,7 +67,7 @@ export function Navbar() {
         </nav>
 
         <a
-          href="https://wa.me/2349160654415"
+          href={wa}
           target="_blank"
           rel="noreferrer"
           className="hidden md:inline-flex items-center px-5 py-2.5 bg-gradient-gold text-primary-foreground rounded-full text-sm font-semibold shadow-glow hover:scale-105 transition-transform"
@@ -92,7 +92,7 @@ export function Navbar() {
                 {l.label}
               </a>
             ))}
-            <a href="https://wa.me/2349160654415" target="_blank" rel="noreferrer" className="px-5 py-3 bg-gradient-gold text-primary-foreground rounded-full text-center font-semibold">
+            <a href={wa} target="_blank" rel="noreferrer" className="px-5 py-3 bg-gradient-gold text-primary-foreground rounded-full text-center font-semibold">
               Hire JagX
             </a>
           </div>
