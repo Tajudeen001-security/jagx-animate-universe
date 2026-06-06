@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { MessageCircle, Mail, MapPin, Phone } from "lucide-react";
+import { useCMS } from "@/lib/cms-store";
 
 export function Contact() {
+  const { data } = useCMS();
   return (
     <section id="contact" className="relative py-32 px-6">
       <div className="max-w-5xl mx-auto">
@@ -20,7 +22,7 @@ export function Contact() {
 
         <div className="grid md:grid-cols-2 gap-6">
           <motion.a
-            href="https://wa.me/2349160654415"
+            href={`https://wa.me/${data.whatsapp}`}
             target="_blank"
             rel="noreferrer"
             initial={{ opacity: 0, y: 40 }}
@@ -35,13 +37,13 @@ export function Contact() {
                 <MessageCircle className="w-7 h-7 text-primary-foreground" />
               </div>
               <div className="text-xs text-muted-foreground tracking-widest">WHATSAPP · INSTANT</div>
-              <div className="mt-2 text-2xl font-black text-gradient-gold">+234 916 065 4415</div>
+              <div className="mt-2 text-2xl font-black text-gradient-gold">+{data.whatsapp}</div>
               <div className="mt-2 text-sm text-muted-foreground">Tap to chat with JagX now →</div>
             </div>
           </motion.a>
 
           <motion.a
-            href="mailto:gbadamositajudeenwan@gmail.com"
+            href={`mailto:${data.email}`}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -55,7 +57,7 @@ export function Contact() {
                 <Mail className="w-7 h-7 text-primary-foreground" />
               </div>
               <div className="text-xs text-muted-foreground tracking-widest">EMAIL · DETAILED</div>
-              <div className="mt-2 text-xl md:text-2xl font-black text-gradient-primary break-all">gbadamositajudeenwan@gmail.com</div>
+              <div className="mt-2 text-xl md:text-2xl font-black text-gradient-primary break-all">{data.email}</div>
               <div className="mt-2 text-sm text-muted-foreground">For proposals & briefs →</div>
             </div>
           </motion.a>
@@ -71,7 +73,7 @@ export function Contact() {
             <Phone className="w-5 h-5 text-gold" />
             <div>
               <div className="text-xs text-muted-foreground">Call direct</div>
-              <a href="tel:+2349160654415" className="font-bold hover:text-gold">+234 916 065 4415</a>
+              <a href={`tel:+${data.whatsapp}`} className="font-bold hover:text-gold">+{data.whatsapp}</a>
             </div>
           </div>
           <div className="glass rounded-3xl p-6 flex items-center gap-4">

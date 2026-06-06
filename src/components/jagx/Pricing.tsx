@@ -1,29 +1,10 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
-
-const tiers = [
-  {
-    name: "Starter Site",
-    price: "₦150,000",
-    desc: "Perfect for personal brands & small businesses",
-    features: ["Up to 5 pages", "Mobile responsive", "Contact form", "Basic SEO", "1 month support"],
-  },
-  {
-    name: "Business Pro",
-    price: "₦450,000",
-    desc: "For growing brands that need power & polish",
-    features: ["Up to 15 pages", "CMS / blog", "Animated UI/UX", "E-commerce ready", "WhatsApp integration", "3 months support"],
-    popular: true,
-  },
-  {
-    name: "World Class",
-    price: "₦1,200,000+",
-    desc: "Full 3D animated flagship experiences",
-    features: ["Unlimited pages", "Custom 3D animations", "Advanced automation", "AI integrations", "Custom backend", "1 year support"],
-  },
-];
+import { useCMS } from "@/lib/cms-store";
 
 export function Pricing() {
+  const { data } = useCMS();
+  const wa = `https://wa.me/${data.whatsapp}`;
   return (
     <section id="pricing" className="relative py-32 px-6">
       <div className="max-w-7xl mx-auto">
@@ -37,13 +18,13 @@ export function Pricing() {
           <h2 className="text-4xl md:text-6xl font-black tracking-tight">
             Pick your <span className="text-gradient-gold">power level</span>
           </h2>
-          <p className="mt-4 text-muted-foreground">Transparent pricing. No surprises. Custom quotes for jewelry, clothing, automation, and mobile phones.</p>
+          <p className="mt-4 text-muted-foreground">Transparent pricing. No surprises. Custom quotes for jewelry, clothing, automation, mobile phones, cars and estate.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {tiers.map((t, i) => (
+          {data.tiers.map((t, i) => (
             <motion.div
-              key={t.name}
+              key={t.id}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -70,7 +51,7 @@ export function Pricing() {
               </ul>
 
               <a
-                href="https://wa.me/2349160654415"
+                href={wa}
                 target="_blank"
                 rel="noreferrer"
                 className={`mt-8 block text-center py-3.5 rounded-full font-semibold transition-all ${

@@ -3,27 +3,73 @@ import { Navbar } from "@/components/jagx/Navbar";
 import { Hero } from "@/components/jagx/Hero";
 import { Marquee } from "@/components/jagx/Marquee";
 import { Services } from "@/components/jagx/Services";
+import { Phones } from "@/components/jagx/Phones";
+import { Cars } from "@/components/jagx/Cars";
+import { Estate } from "@/components/jagx/Estate";
+import { Websites } from "@/components/jagx/Websites";
 import { Products } from "@/components/jagx/Products";
 import { Pricing } from "@/components/jagx/Pricing";
 import { About } from "@/components/jagx/About";
 import { Contact } from "@/components/jagx/Contact";
 import { Footer } from "@/components/jagx/Footer";
+import { CMSProvider, useCMS } from "@/lib/cms-store";
+import ogImage from "@/assets/og-jagx.jpg";
+
+const TITLE = "JagX × JRI — Phones, Cars, Estate, Jewelry, Clothing, Websites & Automation";
+const DESC = "JagX is a JRI-licensed studio building world-class 3D animated websites, business automation, JagX mobile phones, cars, real estate, bespoke jewelry and premium clothing.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "JagX × JRI — Automation, Phones, Jewelry, Clothing & Websites" },
-      { name: "description", content: "JagX is a JRI-licensed studio building world-class websites, business automation, JagX mobile phones, bespoke jewelry and premium clothing." },
-      { property: "og:title", content: "JagX × JRI — Built with Craft" },
-      { property: "og:description", content: "World-class 3D animated websites, automation, JagX phones, jewelry & clothing. JRI Licensed." },
+      { title: TITLE },
+      { name: "description", content: DESC },
+      { name: "keywords", content: "JagX, JRI, JagX phones, JagX cars, JagX estate, JagX jewelry, JagX clothing, website creation Nigeria, business automation, web design Lagos" },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/" },
+      { property: "og:image", content: ogImage },
+      { property: "og:image:width", content: "1280" },
+      { property: "og:image:height", content: "672" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESC },
+      { name: "twitter:image", content: ogImage },
+    ],
+    links: [
+      { rel: "canonical", href: "/" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "JagX Business Group",
+          description: DESC,
+          url: "/",
+          logo: ogImage,
+          sameAs: [],
+          contactPoint: [{
+            "@type": "ContactPoint",
+            telephone: "+2349160654415",
+            contactType: "customer service",
+            areaServed: "Worldwide",
+            availableLanguage: ["English"],
+          }],
+        }),
+      },
     ],
   }),
-  component: Index,
+  component: () => (
+    <CMSProvider>
+      <Index />
+    </CMSProvider>
+  ),
 });
 
 function Index() {
+  const { data } = useCMS();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -31,6 +77,10 @@ function Index() {
         <Hero />
         <Marquee />
         <Services />
+        <Phones />
+        <Cars />
+        <Estate />
+        <Websites />
         <Products />
         <Pricing />
         <About />
@@ -38,9 +88,8 @@ function Index() {
       </main>
       <Footer />
 
-      {/* Floating WhatsApp */}
       <a
-        href="https://wa.me/2349160654415"
+        href={`https://wa.me/${data.whatsapp}`}
         target="_blank"
         rel="noreferrer"
         aria-label="Chat on WhatsApp"

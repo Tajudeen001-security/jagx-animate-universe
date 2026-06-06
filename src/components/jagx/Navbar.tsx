@@ -1,16 +1,21 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
+import { useCMS } from "@/lib/cms-store";
 
 const links = [
   { href: "#services", label: "Services" },
-  { href: "#products", label: "Products" },
+  { href: "#phones", label: "Phones" },
+  { href: "#cars", label: "Cars" },
+  { href: "#estate", label: "Estate" },
+  { href: "#websites", label: "Websites" },
   { href: "#pricing", label: "Pricing" },
-  { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
 
 export function Navbar() {
+  const { data } = useCMS();
+  const wa = `https://wa.me/${data.whatsapp}`;
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -62,7 +67,7 @@ export function Navbar() {
         </nav>
 
         <a
-          href="https://wa.me/2349160654415"
+          href={wa}
           target="_blank"
           rel="noreferrer"
           className="hidden md:inline-flex items-center px-5 py-2.5 bg-gradient-gold text-primary-foreground rounded-full text-sm font-semibold shadow-glow hover:scale-105 transition-transform"
@@ -87,7 +92,7 @@ export function Navbar() {
                 {l.label}
               </a>
             ))}
-            <a href="https://wa.me/2349160654415" target="_blank" rel="noreferrer" className="px-5 py-3 bg-gradient-gold text-primary-foreground rounded-full text-center font-semibold">
+            <a href={wa} target="_blank" rel="noreferrer" className="px-5 py-3 bg-gradient-gold text-primary-foreground rounded-full text-center font-semibold">
               Hire JagX
             </a>
           </div>
