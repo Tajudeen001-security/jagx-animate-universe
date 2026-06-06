@@ -4,9 +4,11 @@ import { Menu, X, Sparkles } from "lucide-react";
 
 const links = [
   { href: "#services", label: "Services" },
-  { href: "#products", label: "Products" },
+  { href: "#phones", label: "Phones" },
+  { href: "#cars", label: "Cars" },
+  { href: "#estate", label: "Estate" },
+  { href: "#websites", label: "Websites" },
   { href: "#pricing", label: "Pricing" },
-  { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
 
