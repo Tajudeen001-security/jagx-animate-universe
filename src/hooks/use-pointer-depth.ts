@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type PointerEvent } from "react";
 import { useMotionValue, useSpring, useTransform, type MotionStyle } from "framer-motion";
 
 type PointerDepthOptions = {
@@ -46,7 +46,7 @@ export function usePointerDepth({ maxRotate = 10, lift = 10, perspective = 1200 
       background: useTransform([glareX, glareY], ([x, gy]) => `radial-gradient(circle at ${x}% ${gy}%, oklch(1 0 0 / 24%), transparent 34%)`),
     } satisfies MotionStyle,
     handlers: {
-      onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => {
+      onPointerMove: (event: PointerEvent<HTMLDivElement>) => {
         const rect = event.currentTarget.getBoundingClientRect();
         px.set((event.clientX - rect.left) / rect.width - 0.5);
         py.set((event.clientY - rect.top) / rect.height - 0.5);
