@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "JagX × JRI — World-Class Digital Portfolio" },
+      { name: "description", content: "JagX builds animated websites, automation, JagX phones, cars, estate, jewelry and clothing with JRI-certified presentation." },
+      { name: "author", content: "JagX Business Group" },
+      { property: "og:title", content: "JagX × JRI — World-Class Digital Portfolio" },
+      { property: "og:description", content: "Explore JagX websites, phones, cars, estate, automation, jewelry and premium clothing in a cinematic animated portfolio." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
