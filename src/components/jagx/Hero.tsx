@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Play, ShieldCheck } from "lucide-react";
+import { usePointerDepth } from "@/hooks/use-pointer-depth";
 
 export function Hero() {
   return (
@@ -109,6 +110,7 @@ export function Hero() {
 }
 
 function Phone3D() {
+  const depth = usePointerDepth({ maxRotate: 13, lift: 8, perspective: 1400 });
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8, rotateY: -30 }}
@@ -121,9 +123,13 @@ function Phone3D() {
       <motion.div
         animate={{ rotateY: [0, 8, 0, -8, 0], rotateX: [0, -4, 0, 4, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        ref={depth.ref}
+        style={depth.style}
+        {...depth.handlers}
         className="relative preserve-3d"
       >
         <div className="relative w-[280px] h-[560px] rounded-[3rem] bg-gradient-to-br from-secondary via-card to-background border border-gold/30 shadow-elegant p-3">
+          <motion.div style={depth.glareStyle} className="pointer-events-none absolute inset-0 rounded-[3rem] opacity-70" />
           <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-background rounded-full z-20" />
           <div className="w-full h-full rounded-[2.4rem] overflow-hidden relative bg-gradient-to-b from-background to-card">
             {/* Phone screen content */}
@@ -131,7 +137,7 @@ function Phone3D() {
             <div className="relative p-6 pt-14 flex flex-col h-full">
               <div className="text-xs text-muted-foreground tracking-widest">JAGX OS · v2.0</div>
               <div className="mt-2 text-2xl font-black text-gradient-gold">Hello, World</div>
-              <div className="mt-8 grid grid-cols-3 gap-3">
+              <div className="mt-8 grid grid-cols-3 gap-3 depth-layer">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <motion.div
                     key={i}
