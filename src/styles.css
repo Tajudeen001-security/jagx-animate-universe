@@ -105,6 +105,13 @@
   }
   .perspective-1000 { perspective: 1000px; }
   .preserve-3d { transform-style: preserve-3d; }
+  .depth-layer { transform: translateZ(42px); }
+  .depth-layer-deep { transform: translateZ(82px); }
+  .cinematic-surface {
+    background-image:
+      linear-gradient(120deg, oklch(0.82 0.16 85 / 12%), transparent 34%, oklch(0.7 0.25 195 / 14%)),
+      repeating-linear-gradient(90deg, oklch(1 0 0 / 5%) 0 1px, transparent 1px 34px);
+  }
 }
 
 @keyframes float {
@@ -136,6 +143,15 @@
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+@keyframes road-depth {
+  0% { transform: translateX(-10%) scaleX(1); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateX(110%) scaleX(0.55); opacity: 0; }
+}
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
 
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-float-slow { animation: float-slow 12s ease-in-out infinite; }
@@ -150,4 +166,14 @@
   background: linear-gradient(90deg, transparent, oklch(1 0 0 / 10%), transparent);
   background-size: 200% 100%;
   animation: shimmer 3s linear infinite;
+}
+.animate-road-depth { animation: road-depth 1.8s linear infinite; }
+.animate-scanline { animation: scanline 3.6s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }

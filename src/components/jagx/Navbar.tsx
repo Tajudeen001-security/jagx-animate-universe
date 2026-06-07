@@ -10,6 +10,7 @@ const links = [
   { href: "#estate", label: "Estate" },
   { href: "#websites", label: "Websites" },
   { href: "#pricing", label: "Pricing" },
+  { href: "/checker", label: "AI Check" },
   { href: "#contact", label: "Contact" },
 ];
 

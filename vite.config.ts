@@ -4,10 +4,15 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  // Force-on Nitro with the Vercel preset so `vite build` produces the
-  // `.vercel/output` directory Vercel auto-detects. Without this, the default
-  // Lovable build targets Cloudflare Workers and Vercel serves nothing → 404.
+  // Force-on Nitro with the Vercel preset AND Vercel Build Output API paths.
+  // The Lovable helper defaults Nitro output back to `dist`, so the output
+  // paths must be explicit or Vercel keeps looking at the wrong directory.
   nitro: {
     preset: "vercel",
+    output: {
+      dir: ".vercel/output",
+      serverDir: ".vercel/output/functions/__server.func",
+      publicDir: ".vercel/output/static",
+    },
   },
 });
