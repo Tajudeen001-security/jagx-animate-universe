@@ -1,5 +1,5 @@
 {
   "buildCommand": "vite build",
-  "outputDirectory": ".vercel/output",
+  "installCommand": "bun install",
   "framework": null
 }
