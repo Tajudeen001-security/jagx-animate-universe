@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Play, ShieldCheck } from "lucide-react";
 import { usePointerDepth } from "@/hooks/use-pointer-depth";
+import { VideoBackdrop } from "@/components/jagx/VideoBackdrop";
 
 export function Hero() {
   return (
     <section id="home" className="relative min-h-screen flex items-center pt-32 pb-20 overflow-hidden">
+      {/* Cinematic ambient video */}
+      <VideoBackdrop variant="circuit" opacity={0.28} />
+
       {/* Floating orbs */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 -left-20 w-96 h-96 bg-gold/20 rounded-full blur-3xl animate-float-slow" />
@@ -14,6 +18,7 @@ export function Hero() {
 
       {/* Grid backdrop */}
       <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(var(--foreground)_1px,transparent_1px),linear-gradient(90deg,var(--foreground)_1px,transparent_1px)] [background-size:50px_50px]" />
+
 
       <div className="relative max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center w-full">
         <div>
