@@ -45,9 +45,10 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "JagX Business Group",
+          name: "JagX",
+          alternateName: ["JagX World Studio", "JagX Business Group", "JagX × JRI"],
           description: DESC,
-          url: "/",
+          url: "https://jagx-animate-universe.lovable.app/",
           logo: ogImage,
           sameAs: [],
           contactPoint: [{
