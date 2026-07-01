@@ -84,6 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Explore JagX websites, phones, cars, estate, automation, jewelry and premium clothing in a cinematic animated portfolio." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "google-site-verification", content: "google8ce6ccebb2bb7870.html" },
     ],
     links: [
       {
