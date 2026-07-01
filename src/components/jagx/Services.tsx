@@ -13,7 +13,8 @@ const services = [
 
 export function Services() {
   return (
-    <section id="services" className="relative py-32 px-6">
+    <section id="services" className="relative py-32 px-6 overflow-hidden">
+      <VideoBackdrop variant="robot" opacity={0.18} />
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
