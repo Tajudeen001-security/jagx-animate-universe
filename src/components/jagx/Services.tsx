@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Bot, Smartphone, Gem, Shirt, Globe, Sparkles } from "lucide-react";
+import { VideoBackdrop } from "@/components/jagx/VideoBackdrop";
 
 const services = [
   { icon: Bot, title: "Business Automation", desc: "AI workflows, CRM pipelines, and ops automation that scales while you sleep.", color: "from-gold/30 to-accent/20" },
