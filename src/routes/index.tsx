@@ -12,8 +12,11 @@ import { Pricing } from "@/components/jagx/Pricing";
 import { About } from "@/components/jagx/About";
 import { Contact } from "@/components/jagx/Contact";
 import { Footer } from "@/components/jagx/Footer";
+import { FAQ, FAQ_ITEMS } from "@/components/jagx/FAQ";
 import { CMSProvider, useCMS } from "@/lib/cms-store";
 import ogImage from "@/assets/og-jagx.jpg";
+
+const SITE_URL = "https://jagx-animate-universe.lovable.app";
 
 const TITLE = "JagX × JRI — Phones, Cars, Estate, Jewelry, Clothing, Websites & Automation";
 const DESC = "JagX is a JRI-licensed studio building world-class 3D animated websites, business automation, JagX mobile phones, cars, real estate, bespoke jewelry and premium clothing.";
