@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Bot, Smartphone, Gem, Shirt, Globe, Sparkles } from "lucide-react";
+import { VideoBackdrop } from "@/components/jagx/VideoBackdrop";
 
 const services = [
   { icon: Bot, title: "Business Automation", desc: "AI workflows, CRM pipelines, and ops automation that scales while you sleep.", color: "from-gold/30 to-accent/20" },
@@ -12,7 +13,8 @@ const services = [
 
 export function Services() {
   return (
-    <section id="services" className="relative py-32 px-6">
+    <section id="services" className="relative py-32 px-6 overflow-hidden">
+      <VideoBackdrop variant="robot" opacity={0.18} />
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
