@@ -117,6 +117,7 @@ function Index() {
         <Products />
         <Pricing />
         <About />
+        <FAQ />
         <Contact />
       </main>
       <Footer />
