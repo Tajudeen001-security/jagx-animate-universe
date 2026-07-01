@@ -51,7 +51,7 @@ export const Route = createFileRoute("/")({
           name: "JagX",
           alternateName: ["JagX World Studio", "JagX Business Group", "JagX × JRI"],
           description: DESC,
-          url: "https://jagx-animate-universe.lovable.app/",
+          url: SITE_URL + "/",
           logo: ogImage,
           sameAs: [],
           contactPoint: [{
@@ -61,6 +61,35 @@ export const Route = createFileRoute("/")({
             areaServed: "Worldwide",
             availableLanguage: ["English"],
           }],
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "JagX World Studio",
+          alternateName: "JagX",
+          url: SITE_URL + "/",
+          inLanguage: "en",
+          publisher: { "@type": "Organization", name: "JagX" },
+          potentialAction: {
+            "@type": "SearchAction",
+            target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/?q={search_term_string}` },
+            "query-input": "required name=search_term_string",
+          },
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQ_ITEMS.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
         }),
       },
     ],
