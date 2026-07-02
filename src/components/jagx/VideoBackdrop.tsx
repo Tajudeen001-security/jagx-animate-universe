@@ -58,6 +58,9 @@ export function VideoBackdrop({
   const sources = VARIANTS[variant];
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [shouldLoad, setShouldLoad] = useState(loading === "auto");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [saveData, setSaveData] = useState(false);
