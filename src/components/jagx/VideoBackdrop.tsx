@@ -178,4 +178,31 @@ export function VideoBackdrop({
   );
 }
 
+const MAX_RETRIES = 4;
+
+function scheduleRetry(
+  countRef: React.MutableRefObject<number>,
+  timerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+  setKey: React.Dispatch<React.SetStateAction<number>>,
+  min = 0,
+) {
+  if (timerRef.current) return; // one pending retry at a time
+  const attempt = Math.max(countRef.current, min);
+  if (attempt >= MAX_RETRIES) return;
+  // Exponential backoff with jitter: 400ms, 800ms, 1600ms, 3200ms (+/-25%)
+  const base = 400 * 2 ** attempt;
+  const jitter = base * (0.75 + Math.random() * 0.5);
+  const delay = Math.min(jitter, 6000);
+  timerRef.current = setTimeout(() => {
+    timerRef.current = null;
+    countRef.current = attempt + 1;
+    setKey((k) => k + 1); // remounts <video> and re-fetches sources
+  }, delay);
+}
+
+function cacheBust(url: string, key: number) {
+  if (key === 0) return url;
+  return url + (url.includes("?") ? "&" : "?") + "r=" + key;
+}
+
 export default VideoBackdrop;
