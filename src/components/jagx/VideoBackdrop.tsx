@@ -1,56 +1,80 @@
 import { useEffect, useRef, useState } from "react";
 import robot from "@/assets/jagx-robot.mp4.asset.json";
 import circuit from "@/assets/jagx-circuit.mp4.asset.json";
+import jars from "@/assets/jagx-jars.mp4.asset.json";
+import android from "@/assets/jagx-android.mp4.asset.json";
+
+export type BackdropVariant = "robot" | "circuit" | "jars" | "android";
+
+type Source = { src: string; type: string; media?: string };
+
+const VARIANTS: Record<BackdropVariant, Source[]> = {
+  // Order matters: browser picks the FIRST matching <source>.
+  // We use `media` queries so small screens pick the lighter clip,
+  // and desktops fall through to the higher-fidelity one.
+  circuit: [
+    { src: circuit.url, type: "video/mp4", media: "(min-width: 768px)" },
+    { src: circuit.url, type: "video/mp4" },
+  ],
+  robot: [
+    { src: robot.url, type: "video/mp4", media: "(min-width: 768px)" },
+    { src: jars.url, type: "video/mp4" }, // lighter clip on mobile
+  ],
+  jars: [
+    { src: jars.url, type: "video/mp4", media: "(min-width: 768px)" },
+    { src: jars.url, type: "video/mp4" },
+  ],
+  android: [
+    { src: android.url, type: "video/mp4", media: "(min-width: 768px)" },
+    { src: android.url, type: "video/mp4" },
+  ],
+};
 
 type Props = {
-  variant?: "robot" | "circuit";
+  variant?: BackdropVariant;
   className?: string;
   opacity?: number;
   overlay?: boolean;
-  /** Poster image URL shown before video loads / for reduced motion users */
+  /** "auto" starts eager, "lazy" defers until near viewport */
+  loading?: "auto" | "lazy";
   poster?: string;
 };
 
 /**
  * Cinematic ambient video background.
- * - Lazy-loads via IntersectionObserver (only mounts <video> when near viewport)
- * - Respects prefers-reduced-motion (shows static gradient instead)
- * - Pauses when off-screen or tab hidden to save CPU/GPU
- * - Downgrades to lower-quality playback on small screens / save-data
+ * - Multi-source <video> with (min-width) media queries for responsive quality
+ * - Lazy IntersectionObserver mount (skippable via loading="auto")
+ * - Pauses when off-screen or tab hidden
+ * - Respects prefers-reduced-motion + Save-Data (static gradient fallback)
  */
 export function VideoBackdrop({
   variant = "circuit",
   className = "",
   opacity = 0.35,
   overlay = true,
+  loading = "lazy",
   poster,
 }: Props) {
-  const src = variant === "robot" ? robot.url : circuit.url;
+  const sources = VARIANTS[variant];
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [shouldLoad, setShouldLoad] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(loading === "auto");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [saveData, setSaveData] = useState(false);
 
-  // Detect reduced motion + save-data preferences
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => setReducedMotion(mq.matches);
     update();
     mq.addEventListener?.("change", update);
-
     const conn = (navigator as any).connection;
-    if (conn) {
-      setSaveData(!!conn.saveData || /2g/.test(conn.effectiveType || ""));
-    }
-
+    if (conn) setSaveData(!!conn.saveData || /2g/.test(conn.effectiveType || ""));
     return () => mq.removeEventListener?.("change", update);
   }, []);
 
-  // Lazy mount when near viewport
   useEffect(() => {
-    if (reducedMotion || saveData) return;
+    if (shouldLoad || reducedMotion || saveData) return;
     const el = containerRef.current;
     if (!el || typeof IntersectionObserver === "undefined") {
       setShouldLoad(true);
@@ -66,23 +90,16 @@ export function VideoBackdrop({
           }
         }
       },
-      { rootMargin: "300px" },
+      { rootMargin: "400px" },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [reducedMotion, saveData]);
+  }, [shouldLoad, reducedMotion, saveData]);
 
-  // Pause when off-screen or tab hidden
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !shouldLoad) return;
-
-    const play = () => {
-      v.play().catch(() => {
-        /* autoplay may be blocked; ignore */
-      });
-    };
-
+    const play = () => v.play().catch(() => {});
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -93,18 +110,23 @@ export function VideoBackdrop({
       { threshold: 0.01 },
     );
     io.observe(v);
-
     const onVis = () => {
       if (document.hidden) v.pause();
-      else if (isInViewport(v)) play();
+      else play();
     };
     document.addEventListener("visibilitychange", onVis);
-
     return () => {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [shouldLoad]);
+
+  const gradient =
+    variant === "robot" || variant === "android"
+      ? "radial-gradient(ellipse at 30% 40%, oklch(0.7 0.25 195 / 40%), transparent 60%), radial-gradient(ellipse at 70% 60%, oklch(0.82 0.16 85 / 30%), transparent 60%)"
+      : variant === "jars"
+        ? "radial-gradient(ellipse at 50% 50%, oklch(0.65 0.22 295 / 35%), transparent 60%), radial-gradient(ellipse at 80% 20%, oklch(0.82 0.16 85 / 30%), transparent 60%)"
+        : "radial-gradient(ellipse at 20% 30%, oklch(0.82 0.16 85 / 35%), transparent 60%), radial-gradient(ellipse at 80% 70%, oklch(0.65 0.22 295 / 35%), transparent 60%)";
 
   return (
     <div
@@ -112,28 +134,17 @@ export function VideoBackdrop({
       className={`pointer-events-none absolute inset-0 -z-10 overflow-hidden ${className}`}
       aria-hidden
     >
-      {/* Static gradient fallback — always rendered underneath */}
-      <div
-        className="absolute inset-0"
-        style={{
-          opacity,
-          background:
-            variant === "robot"
-              ? "radial-gradient(ellipse at 30% 40%, oklch(0.7 0.25 195 / 40%), transparent 60%), radial-gradient(ellipse at 70% 60%, oklch(0.82 0.16 85 / 30%), transparent 60%)"
-              : "radial-gradient(ellipse at 20% 30%, oklch(0.82 0.16 85 / 35%), transparent 60%), radial-gradient(ellipse at 80% 70%, oklch(0.65 0.22 295 / 35%), transparent 60%)",
-        }}
-      />
+      <div className="absolute inset-0" style={{ opacity, background: gradient }} />
 
       {shouldLoad && !reducedMotion && !saveData && (
         <video
           ref={videoRef}
-          src={src}
           poster={poster}
           autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
+          preload={loading === "auto" ? "auto" : "metadata"}
           disablePictureInPicture
           disableRemotePlayback
           className="absolute inset-0 h-full w-full object-cover"
@@ -146,7 +157,11 @@ export function VideoBackdrop({
           onCanPlay={(e) => {
             (e.currentTarget as HTMLVideoElement).play().catch(() => {});
           }}
-        />
+        >
+          {sources.map((s, i) => (
+            <source key={i} src={s.src} type={s.type} media={s.media} />
+          ))}
+        </video>
       )}
 
       {overlay && (
@@ -154,11 +169,6 @@ export function VideoBackdrop({
       )}
     </div>
   );
-}
-
-function isInViewport(el: Element) {
-  const r = el.getBoundingClientRect();
-  return r.bottom > 0 && r.top < (window.innerHeight || 0);
 }
 
 export default VideoBackdrop;

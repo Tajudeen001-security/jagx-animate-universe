@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import { Gauge, Zap } from "lucide-react";
 import { useCMS } from "@/lib/cms-store";
+import { VideoBackdrop } from "@/components/jagx/VideoBackdrop";
 
 export function Cars() {
   const { data } = useCMS();
   return (
     <section id="cars" className="relative py-32 px-6 overflow-hidden">
+      <VideoBackdrop variant="android" opacity={0.18} />
       <div className="max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center max-w-2xl mx-auto mb-16">
           <div className="inline-block px-4 py-1.5 glass rounded-full mb-4 text-xs tracking-widest text-gold">JAGX MOTORS</div>
