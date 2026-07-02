@@ -141,6 +141,7 @@ export function VideoBackdrop({
 
       {shouldLoad && !reducedMotion && !saveData && (
         <video
+          key={retryKey}
           ref={videoRef}
           poster={poster}
           autoPlay
@@ -158,11 +159,14 @@ export function VideoBackdrop({
             willChange: "transform, opacity",
           }}
           onCanPlay={(e) => {
+            retryCountRef.current = 0;
             (e.currentTarget as HTMLVideoElement).play().catch(() => {});
           }}
+          onError={() => scheduleRetry(retryCountRef, retryTimerRef, setRetryKey)}
+          onStalled={() => scheduleRetry(retryCountRef, retryTimerRef, setRetryKey, 1)}
         >
           {sources.map((s, i) => (
-            <source key={i} src={s.src} type={s.type} media={s.media} />
+            <source key={i} src={cacheBust(s.src, retryKey)} type={s.type} media={s.media} />
           ))}
         </video>
       )}
