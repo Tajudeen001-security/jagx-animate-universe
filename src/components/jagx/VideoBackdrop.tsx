@@ -58,6 +58,9 @@ export function VideoBackdrop({
   const sources = VARIANTS[variant];
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [shouldLoad, setShouldLoad] = useState(loading === "auto");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [saveData, setSaveData] = useState(false);
@@ -138,6 +141,7 @@ export function VideoBackdrop({
 
       {shouldLoad && !reducedMotion && !saveData && (
         <video
+          key={retryKey}
           ref={videoRef}
           poster={poster}
           autoPlay
@@ -155,11 +159,14 @@ export function VideoBackdrop({
             willChange: "transform, opacity",
           }}
           onCanPlay={(e) => {
+            retryCountRef.current = 0;
             (e.currentTarget as HTMLVideoElement).play().catch(() => {});
           }}
+          onError={() => scheduleRetry(retryCountRef, retryTimerRef, setRetryKey)}
+          onStalled={() => scheduleRetry(retryCountRef, retryTimerRef, setRetryKey, 1)}
         >
           {sources.map((s, i) => (
-            <source key={i} src={s.src} type={s.type} media={s.media} />
+            <source key={i} src={cacheBust(s.src, retryKey)} type={s.type} media={s.media} />
           ))}
         </video>
       )}
@@ -169,6 +176,33 @@ export function VideoBackdrop({
       )}
     </div>
   );
+}
+
+const MAX_RETRIES = 4;
+
+function scheduleRetry(
+  countRef: React.MutableRefObject<number>,
+  timerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+  setKey: React.Dispatch<React.SetStateAction<number>>,
+  min = 0,
+) {
+  if (timerRef.current) return; // one pending retry at a time
+  const attempt = Math.max(countRef.current, min);
+  if (attempt >= MAX_RETRIES) return;
+  // Exponential backoff with jitter: 400ms, 800ms, 1600ms, 3200ms (+/-25%)
+  const base = 400 * 2 ** attempt;
+  const jitter = base * (0.75 + Math.random() * 0.5);
+  const delay = Math.min(jitter, 6000);
+  timerRef.current = setTimeout(() => {
+    timerRef.current = null;
+    countRef.current = attempt + 1;
+    setKey((k) => k + 1); // remounts <video> and re-fetches sources
+  }, delay);
+}
+
+function cacheBust(url: string, key: number) {
+  if (key === 0) return url;
+  return url + (url.includes("?") ? "&" : "?") + "r=" + key;
 }
 
 export default VideoBackdrop;
