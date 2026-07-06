@@ -305,7 +305,7 @@ function CheckerPage() {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && analyze()}
-                  placeholder={mode === "website" ? "example.com or https://example.com" : "@handle, youtube.com/@channel, tiktok.com/@user, instagram.com/user"}
+                  placeholder={mode === "website" ? "example.com or https://example.com" : "@handle, youtube.com/@channel, tiktok.com/@user, instagram.com/user, x.com/user, facebook.com/page"}
                   className="min-h-14 flex-1 rounded-2xl border border-border bg-card px-5 text-sm outline-none ring-gold/30 transition focus:ring-4"
                 />
                 <button
