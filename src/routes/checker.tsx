@@ -326,6 +326,11 @@ function CheckerPage() {
                   <button onClick={downloadJSON} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold hover:bg-muted">
                     <FileJson className="h-4 w-4" /> Download JSON
                   </button>
+                  {mode === "social" && social && social.calendar.length > 0 && (
+                    <button onClick={downloadCalendar} className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-5 py-2.5 text-sm font-semibold text-gold hover:bg-gold/20">
+                      <Download className="h-4 w-4" /> 30-Day Calendar (CSV)
+                    </button>
+                  )}
                 </div>
               )}
             </div>
