@@ -279,6 +279,16 @@ function detectPlatform(input: string): { platform: SocialPlatform; handle: stri
       const handle = path.split("/").filter(Boolean)[0] || "";
       return { platform: "instagram", handle: "@" + handle.replace(/^@/, ""), url: `https://www.instagram.com/${handle.replace(/^@/, "")}/` };
     }
+    if (host === "x.com" || host === "twitter.com" || host.endsWith(".x.com") || host.endsWith(".twitter.com")) {
+      const handle = path.split("/").filter(Boolean)[0] || "";
+      const clean = handle.replace(/^@/, "");
+      return { platform: "x", handle: "@" + clean, url: `https://x.com/${clean}` };
+    }
+    if (host.includes("facebook.com") || host === "fb.com" || host.endsWith(".fb.com")) {
+      const handle = path.split("/").filter(Boolean)[0] || "";
+      const clean = handle.replace(/^@/, "");
+      return { platform: "facebook", handle: clean, url: `https://www.facebook.com/${clean}` };
+    }
   } catch {}
   // Bare handle — default to youtube
   const bare = s.replace(/^@/, "");
