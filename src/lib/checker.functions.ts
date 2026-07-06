@@ -219,7 +219,17 @@ export const runCheck = createServerFn({ method: "POST" })
 
 // ---------------- SOCIAL CHECKER ----------------
 
-export type SocialPlatform = "youtube" | "tiktok" | "instagram";
+export type SocialPlatform = "youtube" | "tiktok" | "instagram" | "x" | "facebook";
+
+export type CalendarEntry = {
+  date: string;      // YYYY-MM-DD
+  day: string;       // Mon..Sun
+  time: string;      // HH:MM
+  idea: string;
+  format: string;    // e.g. Short, Reel, Carousel, Thread
+  hashtags: string[];
+  cta: string;
+};
 
 export type SocialReport = {
   platform: SocialPlatform;
@@ -243,7 +253,10 @@ export type SocialReport = {
     contentToPost: string[];
     bestPostingTimes: { day: string; time: string; reason: string }[];
     growthPlan: string[];
+    adsStrategy: string[];       // how to get AdSense/ads approved fast + earn more in 30d
+    adsPlacements: string[];     // where to place ad units on the site
   };
+  calendar: CalendarEntry[];      // 30-day posting plan
   error?: string;
 };
 
