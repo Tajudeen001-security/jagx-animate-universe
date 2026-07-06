@@ -237,6 +237,30 @@ function CheckerPage() {
       social.advice.growthPlan.forEach(bullet);
       y += 4;
 
+      heading("ADSENSE — EARN MORE IN 30 DAYS");
+      social.advice.adsStrategy.forEach(bullet);
+      y += 4;
+
+      heading("WHERE TO PLACE ADS ON THE SITE");
+      social.advice.adsPlacements.forEach(bullet);
+      y += 4;
+
+      if (social.calendar.length) {
+        heading("30-DAY POSTING CALENDAR");
+        social.calendar.forEach((c) => {
+          if (y > 770) { doc.addPage(); y = 50; }
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(0);
+          doc.text(`${c.date} (${c.day}) @ ${c.time} — ${c.format}`, 48, y); y += 12;
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(40);
+          const idea = doc.splitTextToSize(`Idea: ${c.idea}`, w - 100);
+          doc.text(idea, 60, y); y += idea.length * 11;
+          const tags = doc.splitTextToSize(`Tags: ${c.hashtags.join(" ")}`, w - 100);
+          doc.text(tags, 60, y); y += tags.length * 11;
+          const cta = doc.splitTextToSize(`CTA: ${c.cta}`, w - 100);
+          doc.text(cta, 60, y); y += cta.length * 11 + 4;
+        });
+      }
+
       if (social.rawSample.length) {
         heading("RAW EXTRACTED VALUES");
         social.rawSample.forEach((r) => line(r.key + ":", r.value));
