@@ -219,7 +219,17 @@ export const runCheck = createServerFn({ method: "POST" })
 
 // ---------------- SOCIAL CHECKER ----------------
 
-export type SocialPlatform = "youtube" | "tiktok" | "instagram";
+export type SocialPlatform = "youtube" | "tiktok" | "instagram" | "x" | "facebook";
+
+export type CalendarEntry = {
+  date: string;      // YYYY-MM-DD
+  day: string;       // Mon..Sun
+  time: string;      // HH:MM
+  idea: string;
+  format: string;    // e.g. Short, Reel, Carousel, Thread
+  hashtags: string[];
+  cta: string;
+};
 
 export type SocialReport = {
   platform: SocialPlatform;
@@ -243,7 +253,10 @@ export type SocialReport = {
     contentToPost: string[];
     bestPostingTimes: { day: string; time: string; reason: string }[];
     growthPlan: string[];
+    adsStrategy: string[];       // how to get AdSense/ads approved fast + earn more in 30d
+    adsPlacements: string[];     // where to place ad units on the site
   };
+  calendar: CalendarEntry[];      // 30-day posting plan
   error?: string;
 };
 
@@ -265,6 +278,16 @@ function detectPlatform(input: string): { platform: SocialPlatform; handle: stri
     if (host.includes("instagram.com")) {
       const handle = path.split("/").filter(Boolean)[0] || "";
       return { platform: "instagram", handle: "@" + handle.replace(/^@/, ""), url: `https://www.instagram.com/${handle.replace(/^@/, "")}/` };
+    }
+    if (host === "x.com" || host === "twitter.com" || host.endsWith(".x.com") || host.endsWith(".twitter.com")) {
+      const handle = path.split("/").filter(Boolean)[0] || "";
+      const clean = handle.replace(/^@/, "");
+      return { platform: "x", handle: "@" + clean, url: `https://x.com/${clean}` };
+    }
+    if (host.includes("facebook.com") || host === "fb.com" || host.endsWith(".fb.com")) {
+      const handle = path.split("/").filter(Boolean)[0] || "";
+      const clean = handle.replace(/^@/, "");
+      return { platform: "facebook", handle: clean, url: `https://www.facebook.com/${clean}` };
     }
   } catch {}
   // Bare handle — default to youtube
@@ -380,23 +403,109 @@ async function scrapeInstagram(profileUrl: string): Promise<Partial<SocialReport
   };
 }
 
+async function scrapeX(profileUrl: string): Promise<Partial<SocialReport> & { rawSample: SocialReport["rawSample"] }> {
+  const res = await fetch(profileUrl, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; JRILICENSE/1.0)" },
+    signal: AbortSignal.timeout(12000),
+  });
+  const html = await res.text();
+  const raw: { key: string; value: string }[] = [];
+  const push = (k: string, v?: string | null) => v && raw.push({ key: k, value: v });
+
+  const name = /<meta property="og:title" content="([^"]+)"/i.exec(html)?.[1];
+  const desc = /<meta (?:property|name)="(?:og:description|description)" content="([^"]+)"/i.exec(html)?.[1];
+  const avatar = /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1];
+
+  const followers = numberFromHumanish(/([\d.,KMB]+)\s+Followers/i.exec(desc || html)?.[1]);
+  const following = numberFromHumanish(/([\d.,KMB]+)\s+Following/i.exec(desc || html)?.[1]);
+  const posts = numberFromHumanish(/([\d.,KMB]+)\s+(?:Posts|Tweets)/i.exec(desc || html)?.[1]);
+  const verified = /verified.*?true|"verified_type"/i.test(html);
+
+  push("og:title", name); push("og:description", desc); push("og:image", avatar);
+  push("followers (parsed)", followers?.toString());
+  push("following (parsed)", following?.toString());
+  push("posts (parsed)", posts?.toString());
+
+  return {
+    displayName: name, bio: desc, avatar,
+    followers, following, videos: posts,
+    avgViews: followers ? Math.round(followers * 0.05) : undefined,
+    verified, rawSample: raw,
+  };
+}
+
+async function scrapeFacebook(profileUrl: string): Promise<Partial<SocialReport> & { rawSample: SocialReport["rawSample"] }> {
+  const res = await fetch(profileUrl, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; JRILICENSE/1.0)" },
+    signal: AbortSignal.timeout(12000),
+  });
+  const html = await res.text();
+  const raw: { key: string; value: string }[] = [];
+  const push = (k: string, v?: string | null) => v && raw.push({ key: k, value: v });
+
+  const name = /<meta property="og:title" content="([^"]+)"/i.exec(html)?.[1];
+  const desc = /<meta (?:property|name)="(?:og:description|description)" content="([^"]+)"/i.exec(html)?.[1];
+  const avatar = /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1];
+
+  const followers = numberFromHumanish(/([\d.,KMB]+)\s+followers/i.exec(desc || html)?.[1])
+    ?? numberFromHumanish(/([\d.,KMB]+)\s+likes/i.exec(desc || html)?.[1]);
+  const following = numberFromHumanish(/([\d.,KMB]+)\s+following/i.exec(desc || html)?.[1]);
+  const verified = /verified/i.test(desc || "");
+
+  push("og:title", name); push("og:description", desc); push("og:image", avatar);
+  push("followers (parsed)", followers?.toString());
+  push("following (parsed)", following?.toString());
+
+  return {
+    displayName: name, bio: desc, avatar,
+    followers, following,
+    avgViews: followers ? Math.round(followers * 0.04) : undefined,
+    verified, rawSample: raw,
+  };
+}
+
 async function generateAdvice(profile: Partial<SocialReport> & { platform: SocialPlatform; handle: string }): Promise<SocialReport["advice"]> {
   const key = process.env.LOVABLE_API_KEY;
   const fallback: SocialReport["advice"] = {
     summary: `Analysis for ${profile.handle} on ${profile.platform}.`,
     whatTheyDoWell: ["Consistent presence detected"],
     mistakes: ["Unable to run AI advice engine — check API key"],
-    contentToPost: ["Post 3–5 short-form videos per week", "Add clear call-to-action in captions"],
+    contentToPost: [
+      "Post 3–5 short-form videos per week with hook in first 2 seconds",
+      "Add clear call-to-action in every caption",
+      "Reply to top comments within the first hour",
+      "Batch 5 tutorials on your top-searched topic",
+      "One personal story per week to build trust",
+    ],
     bestPostingTimes: [
       { day: "Tue", time: "18:00", reason: "Peak evening engagement window" },
+      { day: "Wed", time: "12:30", reason: "Lunch scroll" },
       { day: "Thu", time: "20:00", reason: "Prime scroll window" },
+      { day: "Fri", time: "19:00", reason: "Weekend warm-up traffic" },
       { day: "Sat", time: "11:00", reason: "Weekend browsing peak" },
+      { day: "Sun", time: "21:00", reason: "Pre-week planning scroll" },
     ],
     growthPlan: ["Nail one niche", "Post consistently 5×/week", "Reply to every comment for 30 days"],
+    adsStrategy: [
+      "Apply for Google AdSense with 15+ original long-form pages of content before submission",
+      "Add a real Privacy Policy, About, and Contact page — AdSense rejects sites missing these",
+      "Drive traffic from short-form video CTAs to specific site URLs so RPM climbs above $3",
+      "Enable Auto Ads AND place 2–3 manual units above the fold for higher CTR",
+      "Layer affiliate links (Amazon, Impact, PartnerStack) alongside AdSense to double revenue per visitor",
+      "Publish 1 SEO-targeted article every 2 days for 30 days — long-tail keywords convert fastest",
+    ],
+    adsPlacements: [
+      "In-article ad after the first paragraph (highest RPM)",
+      "Sticky sidebar ad on desktop, sticky bottom-banner on mobile",
+      "Between hero and first content section on the homepage",
+      "Below the fold on /checker results (users are engaged and reading)",
+      "In-feed ad every 4 items on any listing or grid",
+      "End-of-article native ad unit for repeat impressions",
+    ],
   };
   if (!key) return fallback;
 
-  const prompt = `You are a senior social-media strategist. Analyse this ${profile.platform} account and return advice as strict JSON.
+  const prompt = `You are a senior social-media strategist and AdSense monetisation expert. Analyse this ${profile.platform} account and return advice as strict JSON.
 
 Handle: ${profile.handle}
 Display name: ${profile.displayName || "unknown"}
@@ -413,9 +522,11 @@ Return ONLY JSON matching:
  "summary": string (2-3 sentences on what the account is about and its stage),
  "whatTheyDoWell": string[] (3-5 items),
  "mistakes": string[] (3-6 concrete things they're posting wrong or missing),
- "contentToPost": string[] (5-8 concrete video/post ideas tailored to this niche that will grow the account),
- "bestPostingTimes": [{"day":"Mon-Sun","time":"HH:MM local","reason":"why"}] (5-7 slots optimised for ${profile.platform}),
- "growthPlan": string[] (4-6 sequenced tactics for the next 30 days)
+ "contentToPost": string[] (8-12 concrete video/post ideas tailored to this niche that will grow the account — specific hooks, not vague topics),
+ "bestPostingTimes": [{"day":"Mon-Sun","time":"HH:MM local","reason":"why"}] (6-7 slots covering the week, optimised for ${profile.platform}),
+ "growthPlan": string[] (4-6 sequenced tactics for the next 30 days),
+ "adsStrategy": string[] (5-7 specific tactics to earn MORE Google AdSense revenue within 30 days — include getting approved fast, RPM optimisation, traffic funnels, and complementary networks),
+ "adsPlacements": string[] (5-7 exact site placements for ad units — location + why it converts, e.g. 'in-article after first paragraph — highest engaged-reader RPM')
 }`;
 
   try {
@@ -429,7 +540,7 @@ Return ONLY JSON matching:
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You are a concise social-media growth strategist. Reply with valid JSON only." },
+          { role: "system", content: "You are a concise social-media growth and AdSense monetisation strategist. Reply with valid JSON only." },
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
@@ -450,10 +561,73 @@ Return ONLY JSON matching:
         ? parsed.bestPostingTimes.map((s: any) => ({ day: String(s.day), time: String(s.time), reason: String(s.reason || "") }))
         : fallback.bestPostingTimes,
       growthPlan: Array.isArray(parsed.growthPlan) ? parsed.growthPlan.map(String) : fallback.growthPlan,
+      adsStrategy: Array.isArray(parsed.adsStrategy) ? parsed.adsStrategy.map(String) : fallback.adsStrategy,
+      adsPlacements: Array.isArray(parsed.adsPlacements) ? parsed.adsPlacements.map(String) : fallback.adsPlacements,
     };
   } catch {
     return fallback;
   }
+}
+
+const DAY_ORDER = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const FORMATS: Record<SocialPlatform, string[]> = {
+  youtube:   ["Short (< 60s)", "Long-form (8–12min)", "Community post", "Live stream", "Tutorial"],
+  tiktok:    ["Short video", "Storytime", "Duet/Stitch", "Trend remix", "Carousel"],
+  instagram: ["Reel", "Carousel", "Story", "Photo post", "Live"],
+  x:         ["Thread", "Single post", "Quote reply", "Poll", "Long video"],
+  facebook:  ["Reel", "Photo post", "Link share", "Live", "Group post"],
+};
+
+function normalizeDay(day: string): number {
+  const d = day.slice(0, 3).toLowerCase();
+  const map: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+  return map[d] ?? 2;
+}
+
+function buildCalendar(platform: SocialPlatform, ideas: string[], slots: { day: string; time: string; reason: string }[], handle: string): CalendarEntry[] {
+  const start = new Date();
+  const useIdeas = ideas.length ? ideas : ["Value post", "Storytime", "Behind the scenes", "Tutorial", "Trend remix", "Q&A"];
+  const useSlots = slots.length ? slots : [
+    { day: "Mon", time: "18:00", reason: "Evening scroll" },
+    { day: "Wed", time: "12:30", reason: "Lunch peak" },
+    { day: "Fri", time: "19:00", reason: "Weekend warm-up" },
+    { day: "Sat", time: "11:00", reason: "Weekend peak" },
+  ];
+  const formats = FORMATS[platform];
+  const hashtagBase = platform === "youtube"
+    ? ["#Shorts", "#YouTube"]
+    : platform === "tiktok"
+    ? ["#fyp", "#foryou"]
+    : platform === "instagram"
+    ? ["#reels", "#explore"]
+    : platform === "x"
+    ? ["#BuildInPublic"]
+    : ["#Facebook"];
+  const cleanHandle = handle.replace(/^@/, "");
+  const desiredDays = new Set(useSlots.map((s) => normalizeDay(s.day)));
+
+  const out: CalendarEntry[] = [];
+  let ideaIdx = 0;
+  for (let i = 0; i < 30; i++) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + i);
+    const dow = date.getDay();
+    if (!desiredDays.has(dow)) continue;
+    const slot = useSlots.find((s) => normalizeDay(s.day) === dow) || useSlots[0];
+    const idea = useIdeas[ideaIdx % useIdeas.length];
+    const format = formats[ideaIdx % formats.length];
+    ideaIdx++;
+    out.push({
+      date: date.toISOString().slice(0, 10),
+      day: DAY_ORDER[dow],
+      time: slot.time,
+      idea,
+      format,
+      hashtags: [...hashtagBase, `#${cleanHandle}`],
+      cta: "Pin comment with link to your best offer + reply to first 10 comments in 60 min.",
+    });
+  }
+  return out;
 }
 
 export const runSocialCheck = createServerFn({ method: "POST" })
@@ -461,21 +635,24 @@ export const runSocialCheck = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<SocialReport> => {
     const started = new Date().toISOString();
     const detected = detectPlatform(data.input);
+    const emptyAdvice = { summary: "", whatTheyDoWell: [], mistakes: [], contentToPost: [], bestPostingTimes: [], growthPlan: [], adsStrategy: [], adsPlacements: [] };
     if (!detected) {
       return {
         platform: "youtube", handle: data.input, profileUrl: "", fetchedAt: started,
-        rawSample: [],
-        advice: { summary: "", whatTheyDoWell: [], mistakes: [], contentToPost: [], bestPostingTimes: [], growthPlan: [] },
+        rawSample: [], advice: emptyAdvice, calendar: [],
         error: "Could not detect platform. Paste a full URL.",
       };
     }
     try {
       let scraped: Partial<SocialReport> & { rawSample: SocialReport["rawSample"] };
-      if (detected.platform === "youtube")   scraped = await scrapeYouTube(detected.url, detected.handle);
-      else if (detected.platform === "tiktok") scraped = await scrapeTikTok(detected.url);
-      else                                     scraped = await scrapeInstagram(detected.url);
+      if (detected.platform === "youtube")        scraped = await scrapeYouTube(detected.url, detected.handle);
+      else if (detected.platform === "tiktok")    scraped = await scrapeTikTok(detected.url);
+      else if (detected.platform === "instagram") scraped = await scrapeInstagram(detected.url);
+      else if (detected.platform === "x")         scraped = await scrapeX(detected.url);
+      else                                        scraped = await scrapeFacebook(detected.url);
 
       const advice = await generateAdvice({ ...scraped, platform: detected.platform, handle: detected.handle });
+      const calendar = buildCalendar(detected.platform, advice.contentToPost, advice.bestPostingTimes, detected.handle);
 
       return {
         platform: detected.platform,
@@ -484,13 +661,14 @@ export const runSocialCheck = createServerFn({ method: "POST" })
         fetchedAt: started,
         ...scraped,
         advice,
+        calendar,
       };
     } catch (e: any) {
       return {
         platform: detected.platform, handle: detected.handle, profileUrl: detected.url, fetchedAt: started,
-        rawSample: [],
-        advice: { summary: "", whatTheyDoWell: [], mistakes: [], contentToPost: [], bestPostingTimes: [], growthPlan: [] },
+        rawSample: [], advice: emptyAdvice, calendar: [],
         error: e?.message || "Failed to fetch profile — the platform may be blocking anonymous access.",
       };
     }
   });
+

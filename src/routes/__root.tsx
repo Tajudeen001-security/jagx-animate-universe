@@ -89,11 +89,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "JRILICENSE — JagX × JRI World Studio" },
       { name: "google-site-verification", content: "google8ce6ccebb2bb7870.html" },
+      { name: "google-adsense-account", content: "ca-pub-6037723607677223" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+    ],
+    scripts: [
+      {
+        async: true,
+        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6037723607677223",
+        crossOrigin: "anonymous",
       },
     ],
   }),
