@@ -297,7 +297,74 @@ function detectPlatform(input: string): { platform: SocialPlatform; handle: stri
   return { platform: "youtube", handle: "@" + bare, url: `https://www.youtube.com/@${bare}` };
 }
 
+function isValidTimeZone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+/**
+ * Fetch a public profile page with browser-like headers, one retry on
+ * rate-limit / transient failure, and human-readable errors.
+ */
+async function fetchProfileHtml(url: string, platform: string): Promise<string> {
+  const attempt = async () =>
+    fetch(url, {
+      redirect: "follow",
+      headers: {
+        "User-Agent": BROWSER_UA,
+        Accept: "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      signal: AbortSignal.timeout(15000),
+    });
+
+  let res: Response;
+  try {
+    res = await attempt();
+    if (res.status === 429 || res.status === 503) {
+      await new Promise((r) => setTimeout(r, 1500));
+      res = await attempt();
+    }
+  } catch (e: any) {
+    throw new Error(
+      e?.name === "TimeoutError"
+        ? `${platform} did not respond in time. Try again in a moment.`
+        : `Could not reach ${platform} (${e?.message || "network error"}).`,
+    );
+  }
+
+  if (res.status === 429) {
+    throw new Error(`${platform} is rate-limiting anonymous requests right now. Wait about a minute and scan again.`);
+  }
+  if (res.status === 404 || res.status === 410) {
+    throw new Error(`That ${platform} profile does not exist (HTTP ${res.status}). Check the username spelling.`);
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(`${platform} blocked the scan (HTTP ${res.status}) — the profile is private or login-walled.`);
+  }
+  if (!res.ok) {
+    throw new Error(`${platform} returned HTTP ${res.status} for that profile.`);
+  }
+
+  const html = await res.text();
+  if (!html || html.length < 500) {
+    throw new Error(`${platform} returned an empty page — the profile may be private or region-blocked.`);
+  }
+  if (/log in to continue|you must log in|content isn't available/i.test(html) && !/og:title/i.test(html)) {
+    throw new Error(`${platform} is showing a login wall for this profile, so public metrics can't be read.`);
+  }
+  return html;
+}
+
 function numberFromHumanish(v?: string | null): number | undefined {
+
   if (!v) return undefined;
   const m = v.replace(/[, ]/g, "").match(/([\d.]+)\s*([kmb]?)/i);
   if (!m) return undefined;
