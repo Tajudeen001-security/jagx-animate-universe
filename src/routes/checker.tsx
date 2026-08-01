@@ -70,14 +70,18 @@ function CheckerPage() {
 
   const downloadCalendar = () => {
     if (!social || !social.calendar.length) return;
+    const tz = social.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
     const rows = [
-      ["Date", "Day", "Time", "Format", "Idea", "Hashtags", "CTA"],
-      ...social.calendar.map((e) => [e.date, e.day, e.time, e.format, e.idea, e.hashtags.join(" "), e.cta]),
+      ["#", "Date", "Day", "Time", "Time zone", "Platform", "Format", "Idea", "Hashtags", "CTA"],
+      ...social.calendar.slice(0, 30).map((e, i) => [
+        String(i + 1), e.date, e.day, e.time, tz, social.platform, e.format, e.idea, e.hashtags.join(" "), e.cta,
+      ]),
     ];
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     triggerDownload(blob, `jrilicense-30day-calendar-${social.handle.replace(/[^\w]+/g, "-")}.csv`);
   };
+
 
   const downloadPDF = async () => {
     const { jsPDF } = await import("jspdf");
