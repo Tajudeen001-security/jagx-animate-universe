@@ -116,7 +116,9 @@ function Index() {
         <Cars />
         <Estate />
         <Websites />
+        <AppPromo />
         <Products />
+
         <Pricing />
         <About />
         <FAQ />
