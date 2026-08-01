@@ -356,7 +356,13 @@ function CheckerPage() {
                   )}
                 </div>
               )}
+
+              {/* Sidebar / in-column unit */}
+              <div className="mt-10">
+                <AdSlot slot={AD_SLOTS.sidebar} format="vertical" style={{ minHeight: 250 }} label="Sponsored" />
+              </div>
             </div>
+
 
             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="relative">
               <div className="absolute inset-6 bg-gold/20 blur-3xl" />
