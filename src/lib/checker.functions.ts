@@ -492,14 +492,29 @@ async function scrapeX(profileUrl: string): Promise<Partial<SocialReport> & { ra
   const raw: { key: string; value: string }[] = [];
   const push = (k: string, v?: string | null) => v && raw.push({ key: k, value: v });
 
-  const name = /<meta property="og:title" content="([^"]+)"/i.exec(html)?.[1];
-  const desc = /<meta (?:property|name)="(?:og:description|description)" content="([^"]+)"/i.exec(html)?.[1];
-  const avatar = /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1];
+  const jsonNum = (k: string) => {
+    const m = new RegExp(`"${k}"\\s*:\\s*(\\d+)`).exec(html);
+    return m ? Number(m[1]) : undefined;
+  };
 
-  const followers = numberFromHumanish(/([\d.,KMB]+)\s+Followers/i.exec(desc || html)?.[1]);
-  const following = numberFromHumanish(/([\d.,KMB]+)\s+Following/i.exec(desc || html)?.[1]);
-  const posts = numberFromHumanish(/([\d.,KMB]+)\s+(?:Posts|Tweets)/i.exec(desc || html)?.[1]);
-  const verified = /verified.*?true|"verified_type"/i.test(html);
+  const name =
+    /<meta property="og:title" content="([^"]+)"/i.exec(html)?.[1] ||
+    /"name"\s*:\s*"([^"]{1,60})"/.exec(html)?.[1];
+  const desc =
+    /<meta (?:property|name)="(?:og:description|description)" content="([^"]+)"/i.exec(html)?.[1] ||
+    /"description"\s*:\s*"([^"]{0,300})"/.exec(html)?.[1];
+  const avatar =
+    /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1] ||
+    /"profile_image_url_https"\s*:\s*"([^"]+)"/.exec(html)?.[1]?.replace(/\\\//g, "/");
+
+  const followers = jsonNum("followers_count") ?? numberFromHumanish(/([\d.,KMB]+)\s+Followers/i.exec(desc || html)?.[1]);
+  const following = jsonNum("friends_count") ?? numberFromHumanish(/([\d.,KMB]+)\s+Following/i.exec(desc || html)?.[1]);
+  const posts = jsonNum("statuses_count") ?? numberFromHumanish(/([\d.,KMB]+)\s+(?:Posts|Tweets)/i.exec(desc || html)?.[1]);
+  const verified = /"verified"\s*:\s*true|"verified_type"/i.test(html);
+
+  if (followers === undefined && !name) {
+    throw new Error("X (Twitter) did not return public data for that profile — it may be protected, suspended or renamed.");
+  }
 
   push("og:title", name); push("og:description", desc); push("og:image", avatar);
   push("followers (parsed)", followers?.toString());
@@ -515,11 +530,21 @@ async function scrapeX(profileUrl: string): Promise<Partial<SocialReport> & { ra
 }
 
 async function scrapeFacebook(profileUrl: string): Promise<Partial<SocialReport> & { rawSample: SocialReport["rawSample"] }> {
-  const res = await fetch(profileUrl, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; JRILICENSE/1.0)" },
-    signal: AbortSignal.timeout(12000),
-  });
-  const html = await res.text();
+  const slug = new URL(profileUrl).pathname.split("/").filter(Boolean)[0] || "";
+  if (!/^[A-Za-z0-9.\-_]{2,60}$/.test(slug)) {
+    throw new Error("Invalid Facebook page name — use the page URL, e.g. https://www.facebook.com/yourpage.");
+  }
+  if (/^(profile\.php|watch|groups|marketplace|pages|login|sharer)$/i.test(slug)) {
+    throw new Error("That Facebook link is not a public page URL. Use the page's vanity URL, e.g. facebook.com/yourpage.");
+  }
+  // mbasic serves static HTML that is readable without JS.
+  let html: string;
+  try {
+    html = await fetchProfileHtml(`https://mbasic.facebook.com/${slug}`, "Facebook");
+  } catch {
+    html = await fetchProfileHtml(profileUrl, "Facebook");
+  }
+
   const raw: { key: string; value: string }[] = [];
   const push = (k: string, v?: string | null) => v && raw.push({ key: k, value: v });
 
