@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
 import { useCMS } from "@/lib/cms-store";
+import { AppDownloadButton } from "@/components/jagx/AppDownload";
+
 
 const links = [
   { href: "#services", label: "Services" },
