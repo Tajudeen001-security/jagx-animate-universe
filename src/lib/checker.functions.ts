@@ -652,16 +652,26 @@ function buildCalendar(
 
 
 export const runSocialCheck = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ input: z.string().min(2) }).parse(d))
+  .inputValidator((d) =>
+    z.object({ input: z.string().min(2), timezone: z.string().min(1).max(64).optional() }).parse(d),
+  )
   .handler(async ({ data }): Promise<SocialReport> => {
     const started = new Date().toISOString();
+    const timezone = data.timezone && isValidTimeZone(data.timezone) ? data.timezone : "UTC";
     const detected = detectPlatform(data.input);
     const emptyAdvice = { summary: "", whatTheyDoWell: [], mistakes: [], contentToPost: [], bestPostingTimes: [], growthPlan: [], adsStrategy: [], adsPlacements: [] };
     if (!detected) {
       return {
-        platform: "youtube", handle: data.input, profileUrl: "", fetchedAt: started,
+        platform: "youtube", handle: data.input, profileUrl: "", fetchedAt: started, timezone,
         rawSample: [], advice: emptyAdvice, calendar: [],
-        error: "Could not detect platform. Paste a full URL.",
+        error: "Could not detect platform. Paste a full profile URL, e.g. https://x.com/username or https://www.facebook.com/pagename.",
+      };
+    }
+    if (!detected.handle || /^[@\s]*$/.test(detected.handle)) {
+      return {
+        platform: detected.platform, handle: detected.handle, profileUrl: detected.url, fetchedAt: started, timezone,
+        rawSample: [], advice: emptyAdvice, calendar: [],
+        error: `That ${detected.platform.toUpperCase()} link has no profile name in it. Use the profile URL itself (e.g. https://x.com/username), not the homepage or a post link.`,
       };
     }
     try {
@@ -673,17 +683,19 @@ export const runSocialCheck = createServerFn({ method: "POST" })
       else                                        scraped = await scrapeFacebook(detected.url);
 
       const advice = await generateAdvice({ ...scraped, platform: detected.platform, handle: detected.handle });
-      const calendar = buildCalendar(detected.platform, advice.contentToPost, advice.bestPostingTimes, detected.handle);
+      const calendar = buildCalendar(detected.platform, advice.contentToPost, advice.bestPostingTimes, detected.handle, timezone);
 
       return {
         platform: detected.platform,
         handle: detected.handle,
         profileUrl: detected.url,
         fetchedAt: started,
+        timezone,
         ...scraped,
         advice,
         calendar,
       };
+
     } catch (e: any) {
       return {
         platform: detected.platform, handle: detected.handle, profileUrl: detected.url, fetchedAt: started,
