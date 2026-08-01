@@ -281,7 +281,12 @@ function CheckerPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="px-6 pb-24 pt-32">
+        {/* Header leaderboard — above the fold, loads immediately */}
+        <div className="mx-auto mb-8 max-w-7xl">
+          <AdSlot slot={AD_SLOTS.header} lazy={false} format="horizontal" style={{ minHeight: 90 }} label="Sponsored" />
+        </div>
         <section className="mx-auto max-w-7xl">
+
           <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
             <div>
               <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-xs tracking-widest text-gold">
