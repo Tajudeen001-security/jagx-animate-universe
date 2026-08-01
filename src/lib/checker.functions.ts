@@ -473,11 +473,22 @@ async function scrapeInstagram(profileUrl: string): Promise<Partial<SocialReport
 }
 
 async function scrapeX(profileUrl: string): Promise<Partial<SocialReport> & { rawSample: SocialReport["rawSample"] }> {
-  const res = await fetch(profileUrl, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; JRILICENSE/1.0)" },
-    signal: AbortSignal.timeout(12000),
-  });
-  const html = await res.text();
+  const username = new URL(profileUrl).pathname.split("/").filter(Boolean)[0] || "";
+  if (!/^[A-Za-z0-9_]{1,15}$/.test(username)) {
+    throw new Error("Invalid X (Twitter) handle — usernames are 1-15 letters, numbers or underscores.");
+  }
+  if (/^(home|explore|search|i|intent|settings|messages|notifications)$/i.test(username)) {
+    throw new Error("That is an X system page, not a profile. Paste a profile URL like https://x.com/username.");
+  }
+  // x.com is fully JS-rendered for anonymous visitors; the syndication host serves
+  // the same public profile data as static HTML/JSON and is far more reliable.
+  let html: string;
+  try {
+    html = await fetchProfileHtml(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}`, "X (Twitter)");
+  } catch {
+    html = await fetchProfileHtml(profileUrl, "X (Twitter)");
+  }
+
   const raw: { key: string; value: string }[] = [];
   const push = (k: string, v?: string | null) => v && raw.push({ key: k, value: v });
 
