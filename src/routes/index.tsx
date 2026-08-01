@@ -12,7 +12,9 @@ import { Pricing } from "@/components/jagx/Pricing";
 import { About } from "@/components/jagx/About";
 import { Contact } from "@/components/jagx/Contact";
 import { Footer } from "@/components/jagx/Footer";
+import { AppPromo } from "@/components/jagx/AppDownload";
 import { FAQ, FAQ_ITEMS } from "@/components/jagx/FAQ";
+
 import { CMSProvider, useCMS } from "@/lib/cms-store";
 import ogImage from "@/assets/og-jagx.jpg";
 
