@@ -584,7 +584,27 @@ function normalizeDay(day: string): number {
   return map[d] ?? 2;
 }
 
-function buildCalendar(platform: SocialPlatform, ideas: string[], slots: { day: string; time: string; reason: string }[], handle: string): CalendarEntry[] {
+function tzParts(date: Date, timeZone: string) {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short",
+    });
+    const parts = fmt.formatToParts(date);
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+    return { date: `${get("year")}-${get("month")}-${get("day")}`, day: get("weekday") };
+  } catch {
+    return { date: date.toISOString().slice(0, 10), day: DAY_ORDER[date.getUTCDay()] };
+  }
+}
+
+/** Always returns exactly 30 rows — one per day, in the viewer's own time zone. */
+function buildCalendar(
+  platform: SocialPlatform,
+  ideas: string[],
+  slots: { day: string; time: string; reason: string }[],
+  handle: string,
+  timeZone = "UTC",
+): CalendarEntry[] {
   const start = new Date();
   const useIdeas = ideas.length ? ideas : ["Value post", "Storytime", "Behind the scenes", "Tutorial", "Trend remix", "Q&A"];
   const useSlots = slots.length ? slots : [
@@ -604,24 +624,24 @@ function buildCalendar(platform: SocialPlatform, ideas: string[], slots: { day: 
     ? ["#BuildInPublic"]
     : ["#Facebook"];
   const cleanHandle = handle.replace(/^@/, "");
-  const desiredDays = new Set(useSlots.map((s) => normalizeDay(s.day)));
+
+  // One slot per weekday: prefer an AI slot for that day, otherwise cycle the list.
+  const timeForDay = (dow: number, i: number) =>
+    useSlots.find((s) => normalizeDay(s.day) === dow) ?? useSlots[i % useSlots.length];
 
   const out: CalendarEntry[] = [];
-  let ideaIdx = 0;
   for (let i = 0; i < 30; i++) {
-    const date = new Date(start);
-    date.setDate(start.getDate() + i);
-    const dow = date.getDay();
-    if (!desiredDays.has(dow)) continue;
-    const slot = useSlots.find((s) => normalizeDay(s.day) === dow) || useSlots[0];
-    const idea = useIdeas[ideaIdx % useIdeas.length];
-    const format = formats[ideaIdx % formats.length];
-    ideaIdx++;
+    const date = new Date(start.getTime() + i * 86400000);
+    const { date: dateStr, day } = tzParts(date, timeZone);
+    const slot = timeForDay(normalizeDay(day), i);
+    // Consistent, non-repeating rotation of ideas and formats across all 30 days.
+    const idea = useIdeas[i % useIdeas.length];
+    const format = formats[i % formats.length];
     out.push({
-      date: date.toISOString().slice(0, 10),
-      day: DAY_ORDER[dow],
+      date: dateStr,
+      day,
       time: slot.time,
-      idea,
+      idea: `Day ${i + 1}: ${idea}`,
       format,
       hashtags: [...hashtagBase, `#${cleanHandle}`],
       cta: "Pin comment with link to your best offer + reply to first 10 comments in 60 min.",
@@ -629,6 +649,7 @@ function buildCalendar(platform: SocialPlatform, ideas: string[], slots: { day: 
   }
   return out;
 }
+
 
 export const runSocialCheck = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ input: z.string().min(2) }).parse(d))
