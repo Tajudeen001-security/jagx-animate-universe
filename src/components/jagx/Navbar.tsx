@@ -68,15 +68,18 @@ export function Navbar() {
             </motion.a>
           ))}
         </nav>
+        <div className="hidden md:flex items-center gap-3">
+          <AppDownloadButton label="Get the App" />
+          <a
+            href={wa}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center px-5 py-2.5 bg-gradient-gold text-primary-foreground rounded-full text-sm font-semibold shadow-glow hover:scale-105 transition-transform"
+          >
+            Hire JagX
+          </a>
+        </div>
 
-        <a
-          href={wa}
-          target="_blank"
-          rel="noreferrer"
-          className="hidden md:inline-flex items-center px-5 py-2.5 bg-gradient-gold text-primary-foreground rounded-full text-sm font-semibold shadow-glow hover:scale-105 transition-transform"
-        >
-          Hire JagX
-        </a>
 
         <button onClick={() => setOpen(!open)} className="md:hidden text-foreground">
           {open ? <X /> : <Menu />}
