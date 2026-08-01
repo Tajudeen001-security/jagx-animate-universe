@@ -49,7 +49,9 @@ function CheckerPage() {
         setReport(r);
         if (r.error) setErr(r.error);
       } else {
-        const r = await socialCheck({ data: { input: target } });
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const r = await socialCheck({ data: { input: target, timezone: tz } });
+
         setSocial(r);
         if (r.error) setErr(r.error);
       }
