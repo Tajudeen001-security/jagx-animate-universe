@@ -460,8 +460,16 @@ function CheckerPage() {
               </div>
             </motion.div>
           </div>
+
+          {/* After-results unit — highest-CTR placement once a scan completes */}
+          {hasResult && (
+            <div className="mt-14">
+              <AdSlot slot={AD_SLOTS.results} format="auto" style={{ minHeight: 250 }} label="Sponsored" />
+            </div>
+          )}
         </section>
       </main>
+
       <Footer />
     </div>
   );
