@@ -100,9 +100,11 @@ export function Navbar() {
                 {l.label}
               </a>
             ))}
+            <AppDownloadButton className="justify-center" label="Download JagX Connect APK" />
             <a href={wa} target="_blank" rel="noreferrer" className="px-5 py-3 bg-gradient-gold text-primary-foreground rounded-full text-center font-semibold">
               Hire JagX
             </a>
+
           </div>
         </motion.div>
       )}
