@@ -553,13 +553,19 @@ async function scrapeFacebook(profileUrl: string): Promise<Partial<SocialReport>
   const avatar = /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1];
 
   const followers = numberFromHumanish(/([\d.,KMB]+)\s+followers/i.exec(desc || html)?.[1])
+    ?? numberFromHumanish(/([\d.,KMB]+)\s+(?:people\s+)?like[sd]?\s+this/i.exec(html)?.[1])
     ?? numberFromHumanish(/([\d.,KMB]+)\s+likes/i.exec(desc || html)?.[1]);
   const following = numberFromHumanish(/([\d.,KMB]+)\s+following/i.exec(desc || html)?.[1]);
   const verified = /verified/i.test(desc || "");
 
+  if (followers === undefined && !name) {
+    throw new Error("Facebook did not return public data for that page — it may be private, age-restricted or login-walled.");
+  }
+
   push("og:title", name); push("og:description", desc); push("og:image", avatar);
   push("followers (parsed)", followers?.toString());
   push("following (parsed)", following?.toString());
+
 
   return {
     displayName: name, bio: desc, avatar,
