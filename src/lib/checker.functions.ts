@@ -236,6 +236,8 @@ export type SocialReport = {
   handle: string;
   profileUrl: string;
   fetchedAt: string;
+  timezone?: string;
+
   displayName?: string;
   bio?: string;
   avatar?: string;
