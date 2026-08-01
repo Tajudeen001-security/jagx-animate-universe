@@ -58,8 +58,11 @@ export function Footer() {
             <li><a href="#services" className="hover:text-gold">Services</a></li>
             <li><a href="#pricing" className="hover:text-gold">Pricing</a></li>
             <li><a href="#contact" className="hover:text-gold">Contact</a></li>
+            <li><a href="/#app" className="hover:text-gold">JagX Connect App</a></li>
+            <li><a href={APK_URL} download="JagX-Connect.apk" className="hover:text-gold">Download APK</a></li>
             <li><Link to="/admin" className="hover:text-gold">Admin</Link></li>
           </ul>
+
         </div>
 
         <div>
