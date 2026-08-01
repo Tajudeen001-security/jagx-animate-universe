@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
 import { useCMS } from "@/lib/cms-store";
+import { AppDownloadButton } from "@/components/jagx/AppDownload";
+
 
 const links = [
   { href: "#services", label: "Services" },
@@ -9,10 +11,12 @@ const links = [
   { href: "#cars", label: "Cars" },
   { href: "#estate", label: "Estate" },
   { href: "#websites", label: "Websites" },
+  { href: "/#app", label: "App" },
   { href: "#pricing", label: "Pricing" },
   { href: "/checker", label: "AI Check" },
   { href: "#contact", label: "Contact" },
 ];
+
 
 export function Navbar() {
   const { data } = useCMS();
@@ -66,15 +70,18 @@ export function Navbar() {
             </motion.a>
           ))}
         </nav>
+        <div className="hidden md:flex items-center gap-3">
+          <AppDownloadButton label="Get the App" />
+          <a
+            href={wa}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center px-5 py-2.5 bg-gradient-gold text-primary-foreground rounded-full text-sm font-semibold shadow-glow hover:scale-105 transition-transform"
+          >
+            Hire JagX
+          </a>
+        </div>
 
-        <a
-          href={wa}
-          target="_blank"
-          rel="noreferrer"
-          className="hidden md:inline-flex items-center px-5 py-2.5 bg-gradient-gold text-primary-foreground rounded-full text-sm font-semibold shadow-glow hover:scale-105 transition-transform"
-        >
-          Hire JagX
-        </a>
 
         <button onClick={() => setOpen(!open)} className="md:hidden text-foreground">
           {open ? <X /> : <Menu />}
@@ -93,9 +100,11 @@ export function Navbar() {
                 {l.label}
               </a>
             ))}
+            <AppDownloadButton className="justify-center" label="Download JagX Connect APK" />
             <a href={wa} target="_blank" rel="noreferrer" className="px-5 py-3 bg-gradient-gold text-primary-foreground rounded-full text-center font-semibold">
               Hire JagX
             </a>
+
           </div>
         </motion.div>
       )}

@@ -6,7 +6,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { Navbar } from "@/components/jagx/Navbar";
 import { Footer } from "@/components/jagx/Footer";
 import { CMSProvider } from "@/lib/cms-store";
+import { AdSlot } from "@/components/jagx/AdSlot";
 import { runCheck, runSocialCheck, type CheckReport, type SocialReport } from "@/lib/checker.functions";
+
+/**
+ * Paste the data-ad-slot IDs from your AdSense dashboard here.
+ * Empty string = reserved placeholder (no ad request, no policy risk).
+ */
+const AD_SLOTS = {
+  header: "",
+  sidebar: "",
+  results: "",
+};
+
 
 export const Route = createFileRoute("/checker")({
   head: () => ({
@@ -49,7 +61,9 @@ function CheckerPage() {
         setReport(r);
         if (r.error) setErr(r.error);
       } else {
-        const r = await socialCheck({ data: { input: target } });
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const r = await socialCheck({ data: { input: target, timezone: tz } });
+
         setSocial(r);
         if (r.error) setErr(r.error);
       }
@@ -68,14 +82,18 @@ function CheckerPage() {
 
   const downloadCalendar = () => {
     if (!social || !social.calendar.length) return;
+    const tz = social.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
     const rows = [
-      ["Date", "Day", "Time", "Format", "Idea", "Hashtags", "CTA"],
-      ...social.calendar.map((e) => [e.date, e.day, e.time, e.format, e.idea, e.hashtags.join(" "), e.cta]),
+      ["#", "Date", "Day", "Time", "Time zone", "Platform", "Format", "Idea", "Hashtags", "CTA"],
+      ...social.calendar.slice(0, 30).map((e, i) => [
+        String(i + 1), e.date, e.day, e.time, tz, social.platform, e.format, e.idea, e.hashtags.join(" "), e.cta,
+      ]),
     ];
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     triggerDownload(blob, `jrilicense-30day-calendar-${social.handle.replace(/[^\w]+/g, "-")}.csv`);
   };
+
 
   const downloadPDF = async () => {
     const { jsPDF } = await import("jspdf");
@@ -275,7 +293,12 @@ function CheckerPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="px-6 pb-24 pt-32">
+        {/* Header leaderboard — above the fold, loads immediately */}
+        <div className="mx-auto mb-8 max-w-7xl">
+          <AdSlot slot={AD_SLOTS.header} lazy={false} format="horizontal" style={{ minHeight: 90 }} label="Sponsored" />
+        </div>
         <section className="mx-auto max-w-7xl">
+
           <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
             <div>
               <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-xs tracking-widest text-gold">
@@ -333,7 +356,13 @@ function CheckerPage() {
                   )}
                 </div>
               )}
+
+              {/* Sidebar / in-column unit */}
+              <div className="mt-10">
+                <AdSlot slot={AD_SLOTS.sidebar} format="vertical" style={{ minHeight: 250 }} label="Sponsored" />
+              </div>
             </div>
+
 
             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="relative">
               <div className="absolute inset-6 bg-gold/20 blur-3xl" />
@@ -431,8 +460,16 @@ function CheckerPage() {
               </div>
             </motion.div>
           </div>
+
+          {/* After-results unit — highest-CTR placement once a scan completes */}
+          {hasResult && (
+            <div className="mt-14">
+              <AdSlot slot={AD_SLOTS.results} format="auto" style={{ minHeight: 250 }} label="Sponsored" />
+            </div>
+          )}
         </section>
       </main>
+
       <Footer />
     </div>
   );

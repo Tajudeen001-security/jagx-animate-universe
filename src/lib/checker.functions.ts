@@ -236,6 +236,8 @@ export type SocialReport = {
   handle: string;
   profileUrl: string;
   fetchedAt: string;
+  timezone?: string;
+
   displayName?: string;
   bio?: string;
   avatar?: string;
@@ -295,7 +297,74 @@ function detectPlatform(input: string): { platform: SocialPlatform; handle: stri
   return { platform: "youtube", handle: "@" + bare, url: `https://www.youtube.com/@${bare}` };
 }
 
+function isValidTimeZone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+/**
+ * Fetch a public profile page with browser-like headers, one retry on
+ * rate-limit / transient failure, and human-readable errors.
+ */
+async function fetchProfileHtml(url: string, platform: string): Promise<string> {
+  const attempt = async () =>
+    fetch(url, {
+      redirect: "follow",
+      headers: {
+        "User-Agent": BROWSER_UA,
+        Accept: "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      signal: AbortSignal.timeout(15000),
+    });
+
+  let res: Response;
+  try {
+    res = await attempt();
+    if (res.status === 429 || res.status === 503) {
+      await new Promise((r) => setTimeout(r, 1500));
+      res = await attempt();
+    }
+  } catch (e: any) {
+    throw new Error(
+      e?.name === "TimeoutError"
+        ? `${platform} did not respond in time. Try again in a moment.`
+        : `Could not reach ${platform} (${e?.message || "network error"}).`,
+    );
+  }
+
+  if (res.status === 429) {
+    throw new Error(`${platform} is rate-limiting anonymous requests right now. Wait about a minute and scan again.`);
+  }
+  if (res.status === 404 || res.status === 410) {
+    throw new Error(`That ${platform} profile does not exist (HTTP ${res.status}). Check the username spelling.`);
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(`${platform} blocked the scan (HTTP ${res.status}) — the profile is private or login-walled.`);
+  }
+  if (!res.ok) {
+    throw new Error(`${platform} returned HTTP ${res.status} for that profile.`);
+  }
+
+  const html = await res.text();
+  if (!html || html.length < 500) {
+    throw new Error(`${platform} returned an empty page — the profile may be private or region-blocked.`);
+  }
+  if (/log in to continue|you must log in|content isn't available/i.test(html) && !/og:title/i.test(html)) {
+    throw new Error(`${platform} is showing a login wall for this profile, so public metrics can't be read.`);
+  }
+  return html;
+}
+
 function numberFromHumanish(v?: string | null): number | undefined {
+
   if (!v) return undefined;
   const m = v.replace(/[, ]/g, "").match(/([\d.]+)\s*([kmb]?)/i);
   if (!m) return undefined;
@@ -404,22 +473,48 @@ async function scrapeInstagram(profileUrl: string): Promise<Partial<SocialReport
 }
 
 async function scrapeX(profileUrl: string): Promise<Partial<SocialReport> & { rawSample: SocialReport["rawSample"] }> {
-  const res = await fetch(profileUrl, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; JRILICENSE/1.0)" },
-    signal: AbortSignal.timeout(12000),
-  });
-  const html = await res.text();
+  const username = new URL(profileUrl).pathname.split("/").filter(Boolean)[0] || "";
+  if (!/^[A-Za-z0-9_]{1,15}$/.test(username)) {
+    throw new Error("Invalid X (Twitter) handle — usernames are 1-15 letters, numbers or underscores.");
+  }
+  if (/^(home|explore|search|i|intent|settings|messages|notifications)$/i.test(username)) {
+    throw new Error("That is an X system page, not a profile. Paste a profile URL like https://x.com/username.");
+  }
+  // x.com is fully JS-rendered for anonymous visitors; the syndication host serves
+  // the same public profile data as static HTML/JSON and is far more reliable.
+  let html: string;
+  try {
+    html = await fetchProfileHtml(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}`, "X (Twitter)");
+  } catch {
+    html = await fetchProfileHtml(profileUrl, "X (Twitter)");
+  }
+
   const raw: { key: string; value: string }[] = [];
   const push = (k: string, v?: string | null) => v && raw.push({ key: k, value: v });
 
-  const name = /<meta property="og:title" content="([^"]+)"/i.exec(html)?.[1];
-  const desc = /<meta (?:property|name)="(?:og:description|description)" content="([^"]+)"/i.exec(html)?.[1];
-  const avatar = /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1];
+  const jsonNum = (k: string) => {
+    const m = new RegExp(`"${k}"\\s*:\\s*(\\d+)`).exec(html);
+    return m ? Number(m[1]) : undefined;
+  };
 
-  const followers = numberFromHumanish(/([\d.,KMB]+)\s+Followers/i.exec(desc || html)?.[1]);
-  const following = numberFromHumanish(/([\d.,KMB]+)\s+Following/i.exec(desc || html)?.[1]);
-  const posts = numberFromHumanish(/([\d.,KMB]+)\s+(?:Posts|Tweets)/i.exec(desc || html)?.[1]);
-  const verified = /verified.*?true|"verified_type"/i.test(html);
+  const name =
+    /<meta property="og:title" content="([^"]+)"/i.exec(html)?.[1] ||
+    /"name"\s*:\s*"([^"]{1,60})"/.exec(html)?.[1];
+  const desc =
+    /<meta (?:property|name)="(?:og:description|description)" content="([^"]+)"/i.exec(html)?.[1] ||
+    /"description"\s*:\s*"([^"]{0,300})"/.exec(html)?.[1];
+  const avatar =
+    /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1] ||
+    /"profile_image_url_https"\s*:\s*"([^"]+)"/.exec(html)?.[1]?.replace(/\\\//g, "/");
+
+  const followers = jsonNum("followers_count") ?? numberFromHumanish(/([\d.,KMB]+)\s+Followers/i.exec(desc || html)?.[1]);
+  const following = jsonNum("friends_count") ?? numberFromHumanish(/([\d.,KMB]+)\s+Following/i.exec(desc || html)?.[1]);
+  const posts = jsonNum("statuses_count") ?? numberFromHumanish(/([\d.,KMB]+)\s+(?:Posts|Tweets)/i.exec(desc || html)?.[1]);
+  const verified = /"verified"\s*:\s*true|"verified_type"/i.test(html);
+
+  if (followers === undefined && !name) {
+    throw new Error("X (Twitter) did not return public data for that profile — it may be protected, suspended or renamed.");
+  }
 
   push("og:title", name); push("og:description", desc); push("og:image", avatar);
   push("followers (parsed)", followers?.toString());
@@ -435,11 +530,21 @@ async function scrapeX(profileUrl: string): Promise<Partial<SocialReport> & { ra
 }
 
 async function scrapeFacebook(profileUrl: string): Promise<Partial<SocialReport> & { rawSample: SocialReport["rawSample"] }> {
-  const res = await fetch(profileUrl, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; JRILICENSE/1.0)" },
-    signal: AbortSignal.timeout(12000),
-  });
-  const html = await res.text();
+  const slug = new URL(profileUrl).pathname.split("/").filter(Boolean)[0] || "";
+  if (!/^[A-Za-z0-9.\-_]{2,60}$/.test(slug)) {
+    throw new Error("Invalid Facebook page name — use the page URL, e.g. https://www.facebook.com/yourpage.");
+  }
+  if (/^(profile\.php|watch|groups|marketplace|pages|login|sharer)$/i.test(slug)) {
+    throw new Error("That Facebook link is not a public page URL. Use the page's vanity URL, e.g. facebook.com/yourpage.");
+  }
+  // mbasic serves static HTML that is readable without JS.
+  let html: string;
+  try {
+    html = await fetchProfileHtml(`https://mbasic.facebook.com/${slug}`, "Facebook");
+  } catch {
+    html = await fetchProfileHtml(profileUrl, "Facebook");
+  }
+
   const raw: { key: string; value: string }[] = [];
   const push = (k: string, v?: string | null) => v && raw.push({ key: k, value: v });
 
@@ -448,13 +553,19 @@ async function scrapeFacebook(profileUrl: string): Promise<Partial<SocialReport>
   const avatar = /<meta property="og:image" content="([^"]+)"/i.exec(html)?.[1];
 
   const followers = numberFromHumanish(/([\d.,KMB]+)\s+followers/i.exec(desc || html)?.[1])
+    ?? numberFromHumanish(/([\d.,KMB]+)\s+(?:people\s+)?like[sd]?\s+this/i.exec(html)?.[1])
     ?? numberFromHumanish(/([\d.,KMB]+)\s+likes/i.exec(desc || html)?.[1]);
   const following = numberFromHumanish(/([\d.,KMB]+)\s+following/i.exec(desc || html)?.[1]);
   const verified = /verified/i.test(desc || "");
 
+  if (followers === undefined && !name) {
+    throw new Error("Facebook did not return public data for that page — it may be private, age-restricted or login-walled.");
+  }
+
   push("og:title", name); push("og:description", desc); push("og:image", avatar);
   push("followers (parsed)", followers?.toString());
   push("following (parsed)", following?.toString());
+
 
   return {
     displayName: name, bio: desc, avatar,
@@ -584,7 +695,27 @@ function normalizeDay(day: string): number {
   return map[d] ?? 2;
 }
 
-function buildCalendar(platform: SocialPlatform, ideas: string[], slots: { day: string; time: string; reason: string }[], handle: string): CalendarEntry[] {
+function tzParts(date: Date, timeZone: string) {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short",
+    });
+    const parts = fmt.formatToParts(date);
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+    return { date: `${get("year")}-${get("month")}-${get("day")}`, day: get("weekday") };
+  } catch {
+    return { date: date.toISOString().slice(0, 10), day: DAY_ORDER[date.getUTCDay()] };
+  }
+}
+
+/** Always returns exactly 30 rows — one per day, in the viewer's own time zone. */
+function buildCalendar(
+  platform: SocialPlatform,
+  ideas: string[],
+  slots: { day: string; time: string; reason: string }[],
+  handle: string,
+  timeZone = "UTC",
+): CalendarEntry[] {
   const start = new Date();
   const useIdeas = ideas.length ? ideas : ["Value post", "Storytime", "Behind the scenes", "Tutorial", "Trend remix", "Q&A"];
   const useSlots = slots.length ? slots : [
@@ -604,24 +735,24 @@ function buildCalendar(platform: SocialPlatform, ideas: string[], slots: { day: 
     ? ["#BuildInPublic"]
     : ["#Facebook"];
   const cleanHandle = handle.replace(/^@/, "");
-  const desiredDays = new Set(useSlots.map((s) => normalizeDay(s.day)));
+
+  // One slot per weekday: prefer an AI slot for that day, otherwise cycle the list.
+  const timeForDay = (dow: number, i: number) =>
+    useSlots.find((s) => normalizeDay(s.day) === dow) ?? useSlots[i % useSlots.length];
 
   const out: CalendarEntry[] = [];
-  let ideaIdx = 0;
   for (let i = 0; i < 30; i++) {
-    const date = new Date(start);
-    date.setDate(start.getDate() + i);
-    const dow = date.getDay();
-    if (!desiredDays.has(dow)) continue;
-    const slot = useSlots.find((s) => normalizeDay(s.day) === dow) || useSlots[0];
-    const idea = useIdeas[ideaIdx % useIdeas.length];
-    const format = formats[ideaIdx % formats.length];
-    ideaIdx++;
+    const date = new Date(start.getTime() + i * 86400000);
+    const { date: dateStr, day } = tzParts(date, timeZone);
+    const slot = timeForDay(normalizeDay(day), i);
+    // Consistent, non-repeating rotation of ideas and formats across all 30 days.
+    const idea = useIdeas[i % useIdeas.length];
+    const format = formats[i % formats.length];
     out.push({
-      date: date.toISOString().slice(0, 10),
-      day: DAY_ORDER[dow],
+      date: dateStr,
+      day,
       time: slot.time,
-      idea,
+      idea: `Day ${i + 1}: ${idea}`,
       format,
       hashtags: [...hashtagBase, `#${cleanHandle}`],
       cta: "Pin comment with link to your best offer + reply to first 10 comments in 60 min.",
@@ -630,17 +761,28 @@ function buildCalendar(platform: SocialPlatform, ideas: string[], slots: { day: 
   return out;
 }
 
+
 export const runSocialCheck = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ input: z.string().min(2) }).parse(d))
+  .inputValidator((d) =>
+    z.object({ input: z.string().min(2), timezone: z.string().min(1).max(64).optional() }).parse(d),
+  )
   .handler(async ({ data }): Promise<SocialReport> => {
     const started = new Date().toISOString();
+    const timezone = data.timezone && isValidTimeZone(data.timezone) ? data.timezone : "UTC";
     const detected = detectPlatform(data.input);
     const emptyAdvice = { summary: "", whatTheyDoWell: [], mistakes: [], contentToPost: [], bestPostingTimes: [], growthPlan: [], adsStrategy: [], adsPlacements: [] };
     if (!detected) {
       return {
-        platform: "youtube", handle: data.input, profileUrl: "", fetchedAt: started,
+        platform: "youtube", handle: data.input, profileUrl: "", fetchedAt: started, timezone,
         rawSample: [], advice: emptyAdvice, calendar: [],
-        error: "Could not detect platform. Paste a full URL.",
+        error: "Could not detect platform. Paste a full profile URL, e.g. https://x.com/username or https://www.facebook.com/pagename.",
+      };
+    }
+    if (!detected.handle || /^[@\s]*$/.test(detected.handle)) {
+      return {
+        platform: detected.platform, handle: detected.handle, profileUrl: detected.url, fetchedAt: started, timezone,
+        rawSample: [], advice: emptyAdvice, calendar: [],
+        error: `That ${detected.platform.toUpperCase()} link has no profile name in it. Use the profile URL itself (e.g. https://x.com/username), not the homepage or a post link.`,
       };
     }
     try {
@@ -652,17 +794,19 @@ export const runSocialCheck = createServerFn({ method: "POST" })
       else                                        scraped = await scrapeFacebook(detected.url);
 
       const advice = await generateAdvice({ ...scraped, platform: detected.platform, handle: detected.handle });
-      const calendar = buildCalendar(detected.platform, advice.contentToPost, advice.bestPostingTimes, detected.handle);
+      const calendar = buildCalendar(detected.platform, advice.contentToPost, advice.bestPostingTimes, detected.handle, timezone);
 
       return {
         platform: detected.platform,
         handle: detected.handle,
         profileUrl: detected.url,
         fetchedAt: started,
+        timezone,
         ...scraped,
         advice,
         calendar,
       };
+
     } catch (e: any) {
       return {
         platform: detected.platform, handle: detected.handle, profileUrl: detected.url, fetchedAt: started,
