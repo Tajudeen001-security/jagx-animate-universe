@@ -6,7 +6,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { Navbar } from "@/components/jagx/Navbar";
 import { Footer } from "@/components/jagx/Footer";
 import { CMSProvider } from "@/lib/cms-store";
+import { AdSlot } from "@/components/jagx/AdSlot";
 import { runCheck, runSocialCheck, type CheckReport, type SocialReport } from "@/lib/checker.functions";
+
+/**
+ * Paste the data-ad-slot IDs from your AdSense dashboard here.
+ * Empty string = reserved placeholder (no ad request, no policy risk).
+ */
+const AD_SLOTS = {
+  header: "",
+  sidebar: "",
+  results: "",
+};
+
 
 export const Route = createFileRoute("/checker")({
   head: () => ({
