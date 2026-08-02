@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as PhonesRouteImport } from './routes/phones'
 import { Route as CheckerRouteImport } from './routes/checker'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -25,6 +26,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhonesRoute = PhonesRouteImport.update({
+  id: '/phones',
+  path: '/phones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckerRoute = CheckerRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/app': typeof AppRoute
   '/checker': typeof CheckerRoute
+  '/phones': typeof PhonesRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/jagx-connect.apk': typeof ApiPublicJagxConnectDotapkRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/app': typeof AppRoute
   '/checker': typeof CheckerRoute
+  '/phones': typeof PhonesRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/jagx-connect.apk': typeof ApiPublicJagxConnectDotapkRoute
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/app': typeof AppRoute
   '/checker': typeof CheckerRoute
+  '/phones': typeof PhonesRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/jagx-connect.apk': typeof ApiPublicJagxConnectDotapkRoute
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/checker'
+    | '/phones'
     | '/services'
     | '/sitemap.xml'
     | '/api/public/jagx-connect.apk'
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/checker'
+    | '/phones'
     | '/services'
     | '/sitemap.xml'
     | '/api/public/jagx-connect.apk'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/checker'
+    | '/phones'
     | '/services'
     | '/sitemap.xml'
     | '/api/public/jagx-connect.apk'
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AppRoute: typeof AppRoute
   CheckerRoute: typeof CheckerRoute
+  PhonesRoute: typeof PhonesRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicJagxConnectDotapkRoute: typeof ApiPublicJagxConnectDotapkRoute
@@ -136,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phones': {
+      id: '/phones'
+      path: '/phones'
+      fullPath: '/phones'
+      preLoaderRoute: typeof PhonesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checker': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AppRoute: AppRoute,
   CheckerRoute: CheckerRoute,
+  PhonesRoute: PhonesRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicJagxConnectDotapkRoute: ApiPublicJagxConnectDotapkRoute,
