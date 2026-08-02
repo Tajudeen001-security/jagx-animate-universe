@@ -9,15 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WebsitesRouteImport } from './routes/websites'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PhonesRouteImport } from './routes/phones'
+import { Route as EstateRouteImport } from './routes/estate'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckerRouteImport } from './routes/checker'
+import { Route as CarsRouteImport } from './routes/cars'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicJagxConnectDotapkRouteImport } from './routes/api/public/jagx-connect[.]apk'
 
+const WebsitesRoute = WebsitesRouteImport.update({
+  id: '/websites',
+  path: '/websites',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -28,14 +40,39 @@ const ServicesRoute = ServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PhonesRoute = PhonesRouteImport.update({
   id: '/phones',
   path: '/phones',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstateRoute = EstateRouteImport.update({
+  id: '/estate',
+  path: '/estate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckerRoute = CheckerRouteImport.update({
   id: '/checker',
   path: '/checker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarsRoute = CarsRouteImport.update({
+  id: '/cars',
+  path: '/cars',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -46,6 +83,11 @@ const AppRoute = AppRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -62,81 +104,137 @@ const ApiPublicJagxConnectDotapkRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/app': typeof AppRoute
+  '/cars': typeof CarsRoute
   '/checker': typeof CheckerRoute
+  '/contact': typeof ContactRoute
+  '/estate': typeof EstateRoute
   '/phones': typeof PhonesRoute
+  '/pricing': typeof PricingRoute
+  '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/websites': typeof WebsitesRoute
   '/api/public/jagx-connect.apk': typeof ApiPublicJagxConnectDotapkRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/app': typeof AppRoute
+  '/cars': typeof CarsRoute
   '/checker': typeof CheckerRoute
+  '/contact': typeof ContactRoute
+  '/estate': typeof EstateRoute
   '/phones': typeof PhonesRoute
+  '/pricing': typeof PricingRoute
+  '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/websites': typeof WebsitesRoute
   '/api/public/jagx-connect.apk': typeof ApiPublicJagxConnectDotapkRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/app': typeof AppRoute
+  '/cars': typeof CarsRoute
   '/checker': typeof CheckerRoute
+  '/contact': typeof ContactRoute
+  '/estate': typeof EstateRoute
   '/phones': typeof PhonesRoute
+  '/pricing': typeof PricingRoute
+  '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/websites': typeof WebsitesRoute
   '/api/public/jagx-connect.apk': typeof ApiPublicJagxConnectDotapkRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/admin'
     | '/app'
+    | '/cars'
     | '/checker'
+    | '/contact'
+    | '/estate'
     | '/phones'
+    | '/pricing'
+    | '/products'
     | '/services'
     | '/sitemap.xml'
+    | '/websites'
     | '/api/public/jagx-connect.apk'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/admin'
     | '/app'
+    | '/cars'
     | '/checker'
+    | '/contact'
+    | '/estate'
     | '/phones'
+    | '/pricing'
+    | '/products'
     | '/services'
     | '/sitemap.xml'
+    | '/websites'
     | '/api/public/jagx-connect.apk'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/admin'
     | '/app'
+    | '/cars'
     | '/checker'
+    | '/contact'
+    | '/estate'
     | '/phones'
+    | '/pricing'
+    | '/products'
     | '/services'
     | '/sitemap.xml'
+    | '/websites'
     | '/api/public/jagx-connect.apk'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   AppRoute: typeof AppRoute
+  CarsRoute: typeof CarsRoute
   CheckerRoute: typeof CheckerRoute
+  ContactRoute: typeof ContactRoute
+  EstateRoute: typeof EstateRoute
   PhonesRoute: typeof PhonesRoute
+  PricingRoute: typeof PricingRoute
+  ProductsRoute: typeof ProductsRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  WebsitesRoute: typeof WebsitesRoute
   ApiPublicJagxConnectDotapkRoute: typeof ApiPublicJagxConnectDotapkRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/websites': {
+      id: '/websites'
+      path: '/websites'
+      fullPath: '/websites'
+      preLoaderRoute: typeof WebsitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -151,6 +249,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/phones': {
       id: '/phones'
       path: '/phones'
@@ -158,11 +270,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PhonesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estate': {
+      id: '/estate'
+      path: '/estate'
+      fullPath: '/estate'
+      preLoaderRoute: typeof EstateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checker': {
       id: '/checker'
       path: '/checker'
       fullPath: '/checker'
       preLoaderRoute: typeof CheckerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cars': {
+      id: '/cars'
+      path: '/cars'
+      fullPath: '/cars'
+      preLoaderRoute: typeof CarsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -177,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -198,12 +338,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   AppRoute: AppRoute,
+  CarsRoute: CarsRoute,
   CheckerRoute: CheckerRoute,
+  ContactRoute: ContactRoute,
+  EstateRoute: EstateRoute,
   PhonesRoute: PhonesRoute,
+  PricingRoute: PricingRoute,
+  ProductsRoute: ProductsRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  WebsitesRoute: WebsitesRoute,
   ApiPublicJagxConnectDotapkRoute: ApiPublicJagxConnectDotapkRoute,
 }
 export const routeTree = rootRouteImport
