@@ -8,6 +8,8 @@ import { Footer } from "@/components/jagx/Footer";
 import { CMSProvider } from "@/lib/cms-store";
 import { AdSlot } from "@/components/jagx/AdSlot";
 import { runCheck, runSocialCheck, type CheckReport, type SocialReport } from "@/lib/checker.functions";
+import ogImage from "@/assets/og-jagx.jpg";
+
 
 /**
  * Paste the data-ad-slot IDs from your AdSense dashboard here.
