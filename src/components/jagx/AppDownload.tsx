@@ -150,3 +150,78 @@ export function AppPromo() {
     </section>
   );
 }
+
+/** Version manifest: size, SHA-256 checksum and install-safety notes. */
+export function ApkVerifyCard({ className = "" }: { className?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(APK_MANIFEST.sha256);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard unavailable */ }
+  };
+
+  return (
+    <div className={`rounded-2xl border border-gold/25 glass p-5 ${className}`}>
+      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold">
+        <Fingerprint className="h-4 w-4" /> Verify this download
+      </div>
+
+      <dl className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+        <div className="flex justify-between gap-3 border-b border-border/60 py-1">
+          <dt className="text-muted-foreground">File</dt>
+          <dd className="font-semibold">{APK_MANIFEST.fileName}</dd>
+        </div>
+        <div className="flex justify-between gap-3 border-b border-border/60 py-1">
+          <dt className="text-muted-foreground">Size</dt>
+          <dd className="font-semibold">{APK_MANIFEST.sizeMB} MB ({APK_MANIFEST.sizeBytes.toLocaleString()} bytes)</dd>
+        </div>
+        <div className="flex justify-between gap-3 border-b border-border/60 py-1">
+          <dt className="text-muted-foreground">Version</dt>
+          <dd className="font-semibold">v{APK_MANIFEST.version} (code {APK_MANIFEST.versionCode})</dd>
+        </div>
+        <div className="flex justify-between gap-3 border-b border-border/60 py-1">
+          <dt className="text-muted-foreground">Package</dt>
+          <dd className="font-semibold">{APK_MANIFEST.package}</dd>
+        </div>
+        <div className="flex justify-between gap-3 border-b border-border/60 py-1">
+          <dt className="text-muted-foreground">Requires</dt>
+          <dd className="font-semibold">Android {APK_MANIFEST.minAndroid}+</dd>
+        </div>
+        <div className="flex justify-between gap-3 border-b border-border/60 py-1">
+          <dt className="text-muted-foreground">Publisher</dt>
+          <dd className="font-semibold">{APK_MANIFEST.publisher}</dd>
+        </div>
+      </dl>
+
+      <div className="mt-4">
+        <div className="text-xs uppercase tracking-widest text-muted-foreground">SHA-256 checksum</div>
+        <div className="mt-2 flex items-start gap-2">
+          <code className="flex-1 break-all rounded-lg border border-border bg-card px-3 py-2 text-[11px] leading-relaxed text-foreground">
+            {APK_MANIFEST.sha256}
+          </code>
+          <button
+            type="button"
+            onClick={copy}
+            aria-label="Copy SHA-256 checksum"
+            className="mt-0.5 inline-flex items-center gap-1 rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-xs font-semibold text-gold transition hover:bg-gold/20"
+          >
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
+        <div className="mt-2 text-[11px] text-muted-foreground">MD5: {APK_MANIFEST.md5}</div>
+      </div>
+
+      <ul className="mt-5 grid gap-2 text-xs text-muted-foreground">
+        {APK_SAFETY_NOTES.map((n) => (
+          <li key={n} className="flex items-start gap-2">
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gold" />
+            <span>{n}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
