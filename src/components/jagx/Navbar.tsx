@@ -6,15 +6,15 @@ import { AppDownloadButton } from "@/components/jagx/AppDownload";
 
 
 const links = [
-  { href: "#services", label: "Services" },
-  { href: "#phones", label: "Phones" },
-  { href: "#cars", label: "Cars" },
-  { href: "#estate", label: "Estate" },
-  { href: "#websites", label: "Websites" },
+  { href: "/services", label: "Services" },
+  { href: "/phones", label: "Phones" },
+  { href: "/cars", label: "Cars" },
+  { href: "/estate", label: "Estate" },
+  { href: "/websites", label: "Websites" },
   { href: "/app", label: "App" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/checker", label: "AI Check" },
-  { href: "#contact", label: "Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 
