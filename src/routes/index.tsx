@@ -32,18 +32,19 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "/" },
-      { property: "og:image", content: ogImage },
+      { property: "og:url", content: SITE_URL + "/" },
+      { property: "og:image", content: SITE_URL + ogImage },
       { property: "og:image:width", content: "1280" },
       { property: "og:image:height", content: "672" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
-      { name: "twitter:image", content: ogImage },
+      { name: "twitter:image", content: SITE_URL + ogImage },
     ],
     links: [
-      { rel: "canonical", href: "/" },
+      { rel: "canonical", href: SITE_URL + "/" },
     ],
+
     scripts: [
       {
         type: "application/ld+json",
