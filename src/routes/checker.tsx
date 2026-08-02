@@ -20,15 +20,67 @@ const AD_SLOTS = {
 };
 
 
+const SITE_URL = "https://jagx-animate-universe.lovable.app";
+const CHECKER_URL = `${SITE_URL}/checker`;
+const CHECKER_TITLE = "AI & Security Checker — Scan Websites and Social Accounts | JRILICENSE";
+const CHECKER_DESC = "Free JagX × JRILICENSE scanner: detect AI-generated content, audit security headers and video health, and get YouTube/TikTok/Instagram/X/Facebook growth advice, best posting times and a 30-day calendar. Export PDF, JSON or CSV.";
+
 export const Route = createFileRoute("/checker")({
   head: () => ({
     meta: [
-      { title: "JRILICENSE Website & Social AI Checker" },
-      { name: "description", content: "Scan any website or social account. AI-generation signals, security headers, video health, growth advice & posting times. Export PDF or JSON." },
-      { property: "og:title", content: "JRILICENSE Website & Social AI Checker" },
-      { property: "og:description", content: "AI-powered scanner for websites and YouTube/TikTok/Instagram accounts. Full downloadable report." },
+      { title: CHECKER_TITLE },
+      { name: "description", content: CHECKER_DESC },
+      { name: "keywords", content: "AI content checker, website security scanner, social media audit, JagX checker, JRILICENSE, posting time calculator" },
+      { property: "og:title", content: CHECKER_TITLE },
+      { property: "og:description", content: CHECKER_DESC },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: CHECKER_URL },
+      { property: "og:image", content: SITE_URL + ogImage },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: CHECKER_TITLE },
+      { name: "twitter:description", content: CHECKER_DESC },
+      { name: "twitter:image", content: SITE_URL + ogImage },
+    ],
+    links: [{ rel: "canonical", href: CHECKER_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: "JRILICENSE AI & Security Checker",
+          url: CHECKER_URL,
+          applicationCategory: "SecurityApplication",
+          operatingSystem: "Any (web)",
+          browserRequirements: "Requires JavaScript",
+          description: CHECKER_DESC,
+          image: SITE_URL + ogImage,
+          publisher: { "@type": "Organization", name: "JRILICENSE" },
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          featureList: [
+            "AI-generated content detection",
+            "Security header audit",
+            "Backdrop video health probes",
+            "Social account audit (YouTube, TikTok, Instagram, X, Facebook)",
+            "30-day posting calendar export",
+            "PDF, JSON and CSV reports",
+          ],
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "JRILICENSE", item: SITE_URL + "/" },
+            { "@type": "ListItem", position: 2, name: "AI & Security Checker", item: CHECKER_URL },
+          ],
+        }),
+      },
     ],
   }),
+
   component: () => (
     <CMSProvider>
       <CheckerPage />
