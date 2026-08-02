@@ -98,10 +98,10 @@ export function AppPromo() {
             ))}
           </ul>
 
-          <p className="mt-6 text-xs text-muted-foreground">
-            Android 8.0+. If your phone warns about installing outside the Play Store, allow
-            “Install unknown apps” for your browser — the build is signed by JagX Business Group.
-          </p>
+          <div className="mt-8">
+            <ApkVerifyCard />
+          </div>
+
         </motion.div>
 
         <motion.div
