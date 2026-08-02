@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
-import { Download, Smartphone, Star, ShieldCheck, Sparkles } from "lucide-react";
-import apk from "@/assets/jagx-connect.apk.asset.json";
+import { Download, Smartphone, Star, ShieldCheck, Sparkles, Fingerprint, Copy, Check } from "lucide-react";
+import { useState } from "react";
+import { APK_DOWNLOAD_URL, APK_MANIFEST, APK_SAFETY_NOTES } from "@/lib/apk-manifest";
 
-export const APK_URL = apk.url;
-export const APK_SIZE_MB = (apk.size / 1024 / 1024).toFixed(1);
-export const APP_NAME = "JagX Connect";
-export const APP_VERSION = "1.0";
-export const APP_RATING = 4.9;
-export const APP_RATING_COUNT = 1284;
+export const APK_URL = APK_DOWNLOAD_URL;
+export const APK_SIZE_MB = APK_MANIFEST.sizeMB;
+export const APP_NAME = APK_MANIFEST.name;
+export const APP_VERSION = APK_MANIFEST.version;
+export const APP_RATING = APK_MANIFEST.rating;
+export const APP_RATING_COUNT = APK_MANIFEST.ratingCount;
+
 
 /** Small CTA used in the navbar / footer / anywhere. */
 export function AppDownloadButton({ className = "", label = "Get JagX Connect APK" }: { className?: string; label?: string }) {
